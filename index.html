@@ -462,6 +462,10 @@
                     <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">PROTOCOLS</span>
                     <i data-lucide="network" class="w-3 h-3 text-orange-400"></i>
                 </button>
+                <button onclick="switchTab('ports')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-ports">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">PORTS</span>
+                    <i data-lucide="list" class="w-3 h-3 text-green-400"></i>
+                </button>
                 <button onclick="switchTab('calc')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-calc">
                     <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">MATRIX</span>
                     <i data-lucide="binary" class="w-3 h-3 text-cyan-200"></i>
@@ -512,6 +516,48 @@
             // Trigger canvas resize
             resizeCanvas();
         });
+
+        // --- PRE-LOADED COMMON PORTS (Snippet from user CSV) ---
+        const commonPorts = [
+            { port: 20, protocol: "TCP", desc: "FTP Data Transfer" },
+            { port: 21, protocol: "TCP", desc: "FTP Control" },
+            { port: 22, protocol: "TCP/UDP", desc: "SSH (Secure Shell)" },
+            { port: 23, protocol: "TCP/UDP", desc: "Telnet" },
+            { port: 25, protocol: "TCP", desc: "SMTP (Email Routing)" },
+            { port: 53, protocol: "TCP/UDP", desc: "DNS (Domain Name System)" },
+            { port: 67, protocol: "UDP", desc: "DHCP (Server)" },
+            { port: 68, protocol: "UDP", desc: "DHCP (Client)" },
+            { port: 80, protocol: "TCP", desc: "HTTP (Web)" },
+            { port: 110, protocol: "TCP", desc: "POP3 (Email Retrieval)" },
+            { port: 123, protocol: "UDP", desc: "NTP (Network Time)" },
+            { port: 143, protocol: "TCP", desc: "IMAP (Email Management)" },
+            { port: 443, protocol: "TCP", desc: "HTTPS (Secure Web)" },
+            { port: 3389, protocol: "TCP/UDP", desc: "RDP (Remote Desktop)" }
+        ];
+
+        let loadedPorts = [...commonPorts];
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const rows = text.split('\n').slice(1); // Skip header
+                loadedPorts = rows.map(row => {
+                    const cols = row.split(',');
+                    if (cols.length >= 3) {
+                        return { port: cols[0], protocol: cols[1], desc: cols[2] };
+                    }
+                    return null;
+                }).filter(p => p !== null);
+                
+                renderContent(); // Re-render table
+                addLog("SYSTEM", `Loaded ${loadedPorts.length} ports from external DB.`, "success");
+            };
+            reader.readAsText(file);
+        }
 
         // --- OSI GRANULAR DATA ---
         const osiLayers = [
@@ -1051,6 +1097,7 @@
             else if (t === 'academy') { title = "Cyber Academy"; text = "Accessing Neural Network Training Modules. Select a topic below to begin data ingestion."; type = "success"; } 
             else if (t === 'osi') { title = "OSI Model Stack"; text = "Interactive Holographic Visualization. Click any layer to access the Master Class Deep Dive."; type = "info"; } 
             else if (t === 'protocols') { title = "Protocol Database"; text = "Port Registry and Physical Layer specs. Click a category to drill down into specific services."; type = "info"; } 
+            else if (t === 'ports') { title = "Global Port Registry"; text = "Database of standard TCP/UDP ports. Use search to filter or load external CSV for full dataset."; type = "info"; }
             else { title = "Binary Matrix Decoder"; text = "Visualizing the subnet mask in binary helps understand where the Network portion ends and the Host portion begins."; }
             const borderColor = type === 'info' ? 'border-cyan-500' : type === 'warning' ? 'border-yellow-500' : type === 'error' ? 'border-red-500' : 'border-green-500';
             const icon = type === 'error' ? 'alert-triangle' : 'info';
@@ -1173,6 +1220,44 @@
                     <div class="fade-enter-active h-full overflow-y-auto custom-scrollbar pr-2">
                         <div class="glass-panel p-6 rounded-sm border border-orange-500/30">
                             ${categories}
+                        </div>
+                    </div>
+                `;
+            } else if (tab === 'ports') {
+                const portsList = loadedPorts.map(p => `
+                    <div class="flex items-center justify-between p-2 border-b border-slate-800 hover:bg-green-900/10 hover:border-green-500/50 transition-colors group">
+                        <div class="w-16 font-mono text-green-400 text-sm">${p.port}</div>
+                        <div class="w-20 font-mono text-slate-400 text-xs">${p.protocol}</div>
+                        <div class="flex-1 text-slate-300 text-xs truncate group-hover:text-white">${p.desc}</div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = `
+                    <div class="fade-enter-active h-full flex flex-col">
+                        <div class="glass-panel p-4 rounded-sm border border-green-500/30 flex-1 flex flex-col overflow-hidden">
+                            <div class="flex justify-between items-center mb-4 border-b border-green-500/20 pb-2">
+                                <h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="list" class="text-green-400" size="16"></i> GLOBAL PORT REGISTRY</h3>
+                                <div>
+                                    <label class="px-3 py-1.5 bg-green-900/30 border border-green-500/50 rounded-sm text-[10px] font-bold text-green-300 cursor-pointer hover:bg-green-800/50 transition-colors uppercase tracking-wider flex items-center gap-2">
+                                        <i data-lucide="upload" size="10"></i> MOUNT EXTERNAL CSV
+                                        <input type="file" accept=".csv" class="hidden" onchange="handleFileSelect(event)">
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800 mb-2">
+                                <div class="w-16">Port</div>
+                                <div class="w-20">Protocol</div>
+                                <div class="flex-1">Service / Description</div>
+                            </div>
+
+                            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                                ${portsList}
+                            </div>
+                            
+                            <div class="text-[9px] text-slate-600 font-mono pt-2 text-right">
+                                RECORDS LOADED: ${loadedPorts.length}
+                            </div>
                         </div>
                     </div>
                 `;
