@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BGP Policy City | Network Simulator</title>
+    <title>BGP Policy City | Warp Core Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -13,18 +13,19 @@
 
     <style>
         :root {
-            --primary: #06b6d4;
-            --secondary: #10b981;
-            --bg-dark: #050b14;
-            --hud-bg: rgba(11, 17, 26, 0.9);
+            --primary: #00f0ff; /* Electric Cyan */
+            --secondary: #7000ff; /* Warp Purple */
+            --accent: #ff003c; /* Alert Red */
+            --bg-deep: #020205;
+            --glass-border: rgba(0, 240, 255, 0.2);
+            --hud-bg: rgba(5, 5, 10, 0.85);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
+            background-color: var(--bg-deep);
             color: #e2e8f0;
             overflow: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #111827 0%, #050b14 100%);
         }
         
         .font-mono { font-family: 'JetBrains Mono', monospace; }
@@ -32,55 +33,61 @@
         .font-tech { font-family: 'Rajdhani', sans-serif; }
         
         /* --- CUSTOM SCROLLBAR --- */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
         /* --- HUD & SHAPES --- */
-        /* Angled corner for HUD elements */
         .hud-panel-left {
             background: var(--hud-bg);
-            clip-path: polygon(0 0, 100% 0, 100% 75%, 92% 100%, 0 100%);
-            border-left: 3px solid;
-            backdrop-filter: blur(8px);
+            clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+            border-left: 2px solid var(--primary);
+            border-top: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
         }
         .hud-panel-right {
             background: var(--hud-bg);
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 8% 100%, 0 75%);
-            border-right: 3px solid #06b6d4;
-            backdrop-filter: blur(8px);
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+            border-right: 2px solid var(--primary);
+            border-top: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
         }
 
-        /* Glass panel for modals/popups remains */
+        /* Glass panel upgrade */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(10, 10, 20, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 240, 255, 0.05);
+            position: relative;
+        }
+        
+        /* Corner accents for panels */
+        .glass-panel::before {
+            content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px;
+            border-top: 2px solid var(--primary); border-left: 2px solid var(--primary);
+            pointer-events: none;
+        }
+        .glass-panel::after {
+            content: ''; position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px;
+            border-bottom: 2px solid var(--primary); border-right: 2px solid var(--primary);
+            pointer-events: none;
         }
 
         .modal-overlay {
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
             transition: all 0.3s ease;
         }
 
-        /* --- HEX GRID BACKGROUND --- */
-        .hex-bg {
-            background-color: transparent;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%2306b6d4' fill-opacity='0.05' fill-rule='nonzero'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            animation: moveHex 60s linear infinite;
-        }
-        @keyframes moveHex {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 -100px; }
-        }
-
         /* --- GLITCH EFFECT --- */
-        .glitch-text { position: relative; color: white; }
+        .glitch-text { position: relative; color: white; text-shadow: 2px 0 var(--secondary); }
         .glitch-text::before, .glitch-text::after {
             content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep);
         }
         .glitch-text::before {
             left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0);
@@ -102,75 +109,158 @@
         /* --- SCANLINE & CRT EFFECTS --- */
         .crt-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 50;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none; z-index: 50;
         }
         .scanline {
-            width: 100%; height: 2px; z-index: 51; background: rgba(6, 182, 212, 0.1);
-            opacity: 0.75; position: absolute; bottom: 100%; animation: scanline 8s linear infinite;
-            pointer-events: none; box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+            width: 100%; height: 2px; z-index: 51; background: rgba(0, 240, 255, 0.05);
+            opacity: 0.5; position: absolute; bottom: 100%; animation: scanline 6s linear infinite;
+            pointer-events: none;
         }
         @keyframes scanline { 0% { bottom: 100%; } 100% { bottom: -10px; } }
 
         /* --- ANIMATIONS --- */
-        @keyframes dash-flow { to { stroke-dashoffset: -20; } }
-        .animate-dash-slow { animation: dash-flow 2s linear infinite; }
+        @keyframes dash-flow { to { stroke-dashoffset: -40; } }
+        .animate-dash-slow { animation: dash-flow 1s linear infinite; }
         
-        @keyframes draw-in { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
-        .draw-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-in 2s ease-out forwards; }
-
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
-        .animate-spin-slow { transform-origin: center; animation: spin-slow 10s linear infinite; }
-        .animate-spin-reverse { transform-origin: center; animation: spin-reverse 8s linear infinite; }
-
         .fade-enter { opacity: 0; transform: translateY(10px); }
         .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 300ms, transform 300ms; }
         
-        .cyber-input { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; transition: all 0.3s ease; }
-        .cyber-input:focus { border-color: #06b6d4; box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); background: rgba(6, 182, 212, 0.05); }
+        .cyber-input { 
+            background: rgba(0, 0, 0, 0.6); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+        .cyber-input:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); 
+            background: rgba(0, 240, 255, 0.05); 
+        }
 
-        .neon-green { text-shadow: 0 0 5px rgba(34, 197, 94, 0.8); }
-        .neon-cyan { text-shadow: 0 0 8px rgba(6, 182, 212, 0.8); }
+        .neon-green { text-shadow: 0 0 8px rgba(34, 197, 94, 0.8); }
+        .neon-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.8); }
+        .neon-purple { text-shadow: 0 0 10px rgba(168, 85, 247, 0.8); }
         
         .typing-cursor::after {
-            content: '▋'; display: inline-block; animation: blink 1s infinite;
-            color: #06b6d4; margin-left: 2px;
+            content: '_'; display: inline-block; animation: blink 1s infinite;
+            color: var(--primary); margin-left: 2px;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         /* HEADER GRID */
         .header-grid {
-            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-color: #050510;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.8);
         }
 
-        /* TAB STYLES */
+        /* TAB STYLES - Warp Style */
         .nav-tab {
             position: relative;
-            transition: all 0.3s ease;
-            opacity: 0.6;
+            transition: all 0.2s ease;
+            opacity: 0.5;
+            background: rgba(0,0,0,0.2);
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+            margin: 0 2px;
         }
         .nav-tab:hover {
-            opacity: 1;
-            background: linear-gradient(to top, rgba(6, 182, 212, 0.1), transparent);
+            opacity: 0.8;
+            background: rgba(0, 240, 255, 0.05);
+            transform: translateY(-2px);
         }
         .nav-tab.active {
             opacity: 1;
             color: white;
-            background: linear-gradient(to top, rgba(6, 182, 212, 0.15), transparent);
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), transparent);
+            border-bottom: 2px solid var(--primary);
+            text-shadow: 0 0 8px var(--primary);
         }
-        .nav-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: #06b6d4;
-            box-shadow: 0 0 10px #06b6d4;
+        
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
         }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            background: #334155;
+            border-radius: 2px;
+        }
+
+        /* --- EDUCATION ANIMATIONS --- */
+        @keyframes float-particle {
+            0% { transform: translate(0, 0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(100px, 0); opacity: 0; }
+        }
+        .edu-particle { animation: float-particle 2s linear infinite; }
+        
+        @keyframes bounce-contain {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(40px, 20px); }
+            50% { transform: translate(20px, 40px); }
+            75% { transform: translate(-10px, 20px); }
+            100% { transform: translate(0, 0); }
+        }
+        .edu-contained { animation: bounce-contain 4s ease-in-out infinite; }
+        
+        @keyframes slot-machine {
+            0% { content: "192.168.1.10"; }
+            25% { content: "192.168.1.55"; }
+            50% { content: "192.168.1.102"; }
+            75% { content: "192.168.1.13"; }
+            100% { content: "192.168.1.10"; }
+        }
+        .edu-dynamic-text::after { content: "192.168.1.10"; animation: slot-machine 3s steps(4) infinite; }
+
+        /* --- OSI STACK ANIMATION --- */
+        @keyframes flow-down {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .packet-flow-down {
+            position: absolute; left: 50%; width: 8px; height: 8px; 
+            background: var(--primary); border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+            transform: translateX(-50%);
+            animation: flow-down 3s infinite linear;
+            pointer-events: none;
+            z-index: 20;
+        }
+        
+        .osi-layer {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .osi-layer:hover {
+            background: rgba(0, 240, 255, 0.1);
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+        }
+        .osi-layer.active {
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.2), transparent);
+            border-left: 4px solid var(--primary);
+            border-right: 4px solid var(--secondary);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+        
     </style>
 </head>
 <body class="flex flex-col md:flex-row h-screen w-screen text-slate-100 overflow-hidden">
@@ -179,30 +269,28 @@
     <div class="crt-overlay"></div>
     <div class="scanline"></div>
 
-    <!-- KNOWLEDGE MODAL (Hidden by default) -->
+    <!-- KNOWLEDGE MODAL -->
     <div id="knowledge-modal" class="modal-overlay fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-2xl rounded-lg p-6 border-l-4 border-l-cyan-500 relative overflow-hidden">
+        <div class="glass-panel w-full max-w-2xl p-6 relative overflow-hidden bg-black">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
             <div class="absolute -right-10 -top-10 text-9xl text-cyan-500/5 font-cyber pointer-events-none">DATA</div>
             
             <h2 id="modal-title" class="text-2xl font-bold font-cyber text-cyan-400 mb-2 neon-cyan">Term Decrypted</h2>
-            <div class="h-1 w-20 bg-cyan-500 mb-4"></div>
+            <div class="h-0.5 w-full bg-gradient-to-r from-cyan-500 to-transparent mb-4"></div>
             
-            <div id="modal-content" class="text-slate-300 font-mono text-sm leading-relaxed space-y-4">
-                <!-- Content injected via JS -->
-            </div>
+            <div id="modal-content" class="text-slate-300 font-mono text-sm leading-relaxed space-y-4"></div>
             
-            <div class="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center">
-                <div class="text-[10px] text-slate-500 font-mono">SOURCE: CORTEX DATABASE_V9.2</div>
-                <button onclick="closeModal()" class="px-4 py-2 bg-cyan-900/50 hover:bg-cyan-800 text-cyan-300 border border-cyan-700 rounded text-xs font-bold tracking-wider">ACKNOWLEDGE</button>
+            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center">
+                <div class="text-[10px] text-slate-500 font-mono">SOURCE: WARP_DRIVE_DB_V2.0</div>
+                <button onclick="closeModal()" class="px-6 py-2 bg-cyan-900/30 hover:bg-cyan-800/50 text-cyan-300 border border-cyan-500/50 rounded-sm text-xs font-bold tracking-widest uppercase transition-all hover:shadow-[0_0_15px_rgba(6,182,212,0.4)]">Close Terminal</button>
             </div>
         </div>
     </div>
 
     <!-- LEFT PANEL: VISUAL MAP -->
-    <div class="relative flex-1 bg-black/40 border-r border-slate-800 h-1/2 md:h-full perspective-1000">
-        <div class="absolute inset-0 z-0 opacity-20 hex-bg pointer-events-none"></div>
-        <canvas id="bg-canvas" class="absolute inset-0 z-0 opacity-30"></canvas>
+    <div class="relative flex-1 bg-black border-r border-slate-800 h-1/2 md:h-full overflow-hidden">
+        <!-- Warp Starfield Canvas -->
+        <canvas id="bg-canvas" class="absolute inset-0 z-0 opacity-80"></canvas>
         
         <!-- NEW HUD STATUS BAR -->
         <div class="absolute top-6 left-6 right-6 z-20 flex justify-between pointer-events-none select-none">
@@ -225,42 +313,42 @@
                 <div class="text-[10px] text-cyan-600 font-mono tracking-[0.2em] mb-1 pr-1 opacity-70">// POLICY_METRICS</div>
                 <div class="hud-panel-right pl-6 pr-4 py-2 shadow-lg flex items-center gap-4">
                      <div class="text-right">
-                         <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">ISP A PREFERENCE</div>
+                         <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">ISP A PREF</div>
                          <div class="text-cyan-400 font-mono font-bold leading-none" id="pref-a-display">100</div>
                      </div>
                      <div class="h-6 w-px bg-slate-700"></div>
                      <div class="text-right">
-                         <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">ISP B PREFERENCE</div>
+                         <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">ISP B PREF</div>
                          <div class="text-cyan-400 font-mono font-bold leading-none" id="pref-b-display">100</div>
                      </div>
                 </div>
             </div>
         </div>
 
-        <svg id="network-map" class="absolute inset-0 w-full h-full z-10 pointer-events-none filter drop-shadow-[0_0_5px_rgba(6,182,212,0.3)]"></svg>
+        <svg id="network-map" class="absolute inset-0 w-full h-full z-10 pointer-events-none filter drop-shadow-[0_0_8px_rgba(0,240,255,0.4)]"></svg>
         <div id="map-nodes" class="absolute inset-0 z-20 pointer-events-none"></div>
     </div>
 
     <!-- RIGHT PANEL: CONTROLS -->
-    <div class="w-full md:w-[500px] bg-slate-900/95 backdrop-blur-xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.8)] z-30 h-1/2 md:h-full border-t md:border-t-0 md:border-l border-slate-700">
+    <div class="w-full md:w-[500px] bg-[#050510]/95 backdrop-blur-xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.9)] z-30 h-1/2 md:h-full border-t md:border-t-0 md:border-l border-slate-700">
         
-        <!-- NEW COMMAND HEADER -->
-        <div class="relative shrink-0 bg-slate-900 border-b border-white/10 header-grid">
-            <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-transparent"></div>
+        <!-- HEADER -->
+        <div class="relative shrink-0 border-b border-cyan-900/30 header-grid">
+            <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-400 to-purple-600"></div>
             
             <div class="p-5 flex justify-between items-center relative z-10">
                 <div class="flex items-center gap-4">
                     <div class="relative group cursor-help" title="System ID: NS-9000">
                         <div class="absolute inset-0 bg-cyan-400 blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                        <div class="bg-slate-800 border border-slate-600 p-2 rounded shadow-inner relative">
+                        <div class="bg-slate-900 border border-slate-700 p-2 rounded shadow-inner relative">
                             <i data-lucide="globe" class="text-cyan-400 w-6 h-6"></i>
                         </div>
                     </div>
                     <div>
                         <h1 class="text-xl md:text-2xl font-bold text-white tracking-tighter font-cyber glitch-text leading-none" id="main-header" data-text="NetSim Pro">NetSim <span class="text-cyan-400">Pro</span></h1>
                         <div class="flex items-center gap-2 mt-1">
-                            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                            <span class="text-[10px] text-green-500 font-mono tracking-widest uppercase opacity-80">CORTEX ENGINE ACTIVE</span>
+                            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_5px_lime]"></div>
+                            <span class="text-[10px] text-green-400 font-mono tracking-widest uppercase opacity-90">HYPERSPACE LINK: STABLE</span>
                         </div>
                     </div>
                 </div>
@@ -271,42 +359,49 @@
                 </div>
             </div>
 
-            <!-- NEW TAB NAVIGATION RAIL -->
-            <div class="flex border-t border-white/5 bg-black/40 backdrop-blur-sm">
-                <button onclick="switchTab('A')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-A">
-                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 tracking-wider">ISP A</span>
-                    <div class="w-1 h-1 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></div>
+            <!-- TAB NAVIGATION (SCROLLABLE) -->
+            <div class="flex px-2 pb-2 overflow-x-auto custom-scrollbar gap-1">
+                <button onclick="switchTab('A')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-A">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">ISP A</span>
+                    <div class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>
                 </button>
-                <button onclick="switchTab('B')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-B">
-                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 tracking-wider">ISP B</span>
-                    <div class="w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_5px_#3b82f6]"></div>
+                <button onclick="switchTab('B')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-B">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">ISP B</span>
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div>
                 </button>
-                <div class="w-px bg-white/10 my-2"></div>
-                <button onclick="switchTab('eBGP')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-eBGP">
-                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-yellow-300 tracking-wider">eBGP</span>
-                    <i data-lucide="zap" class="w-3 h-3 text-yellow-500"></i>
+                <button onclick="switchTab('eBGP')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-eBGP">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">UPLINK</span>
+                    <i data-lucide="zap" class="w-3 h-3 text-yellow-400"></i>
                 </button>
-                <button onclick="switchTab('zones')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-zones">
-                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 tracking-wider">ZONES</span>
-                    <i data-lucide="layout-grid" class="w-3 h-3 text-cyan-500"></i>
+                <button onclick="switchTab('zones')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-zones">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">SECTORS</span>
+                    <i data-lucide="layout-grid" class="w-3 h-3 text-cyan-400"></i>
                 </button>
-                <button onclick="switchTab('calc')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-calc">
-                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-purple-300 tracking-wider">CALC</span>
-                    <i data-lucide="binary" class="w-3 h-3 text-purple-500"></i>
+                <button onclick="switchTab('academy')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-academy">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">ACADEMY</span>
+                    <i data-lucide="graduation-cap" class="w-3 h-3 text-purple-400"></i>
+                </button>
+                <button onclick="switchTab('osi')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-osi">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">OSI</span>
+                    <i data-lucide="layers" class="w-3 h-3 text-pink-400"></i>
+                </button>
+                <button onclick="switchTab('calc')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-calc">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">MATRIX</span>
+                    <i data-lucide="binary" class="w-3 h-3 text-cyan-200"></i>
                 </button>
             </div>
         </div>
 
         <!-- Main Content Area -->
-        <div class="flex-1 overflow-y-auto p-4 md:p-5 relative custom-scrollbar bg-slate-900/50">
+        <div class="flex-1 overflow-y-auto p-4 md:p-5 relative custom-scrollbar bg-black/20">
             <div id="advisor-container" class="mb-4 md:mb-6"></div>
             <div id="content-area"></div>
         </div>
 
         <!-- Terminal Log / Footer -->
-        <div class="h-32 md:h-40 bg-black border-t border-slate-700 p-3 font-mono text-[11px] md:text-xs overflow-y-auto shrink-0 custom-scrollbar shadow-inner" id="console-log">
-            <div class="text-green-500 opacity-80 typing-line">cortex > systems online. database mounted.</div>
-            <div class="text-slate-400 opacity-80 typing-line">cortex > awaiting manual input...</div>
+        <div class="h-32 md:h-36 bg-[#020205] border-t border-slate-800 p-3 font-mono text-[11px] md:text-xs overflow-y-auto shrink-0 custom-scrollbar shadow-[inset_0_10px_20px_rgba(0,0,0,1)]" id="console-log">
+            <div class="text-cyan-500 opacity-90 typing-line">warp_core > initializing logic circuits...</div>
+            <div class="text-slate-500 opacity-80 typing-line">warp_core > ready for command input.</div>
             <div id="typing-anchor"></div>
         </div>
     </div>
@@ -413,6 +508,18 @@
             }
         };
 
+        const osiLayers = [
+            { id: 7, name: "Application", pdu: "Data", desc: "User Interface", analogy: "The Letter", detail: "Layer where users interact (HTTP, DNS). It's the 'what' of the data." },
+            { id: 6, name: "Presentation", pdu: "Data", desc: "Translation/Encryption", analogy: "Language/Cipher", detail: "Formats data (JPEG, ASCII) and handles encryption (TLS)." },
+            { id: 5, name: "Session", pdu: "Data", desc: "Dialog Control", analogy: "Conversation", detail: "Maintains connections between applications (Sockets)." },
+            { id: 4, name: "Transport", pdu: "Segment", desc: "Reliability", analogy: "The Shipping Box", detail: "Breaks data into chunks. TCP (Reliable) or UDP (Fast). Ports." },
+            { id: 3, name: "Network", pdu: "Packet", desc: "Routing/Addressing", analogy: "The Address", detail: "Logical Addressing (IP). Determines best path across web." },
+            { id: 2, name: "Data Link", pdu: "Frame", desc: "Physical Addressing", analogy: "The Local Truck", detail: "MAC Addresses. Switches. Reliable node-to-node transfer." },
+            { id: 1, name: "Physical", pdu: "Bit", desc: "Wires/Signals", analogy: "The Road", detail: "Binary transmission (1s and 0s) over copper, fiber, or air." }
+        ];
+
+        let selectedOsiLayer = null;
+
         function showConcept(key) {
             const data = knowledgeDb[key];
             if(!data) return;
@@ -438,56 +545,73 @@
             }, 30);
         }
 
-        // --- BACKGROUND CANVAS ANIMATION ---
+        // --- WARP SPEED STARFIELD ANIMATION ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
-        let width, height, particles = [];
+        let width, height;
+        const stars = [];
+        const numStars = 400;
+        const warpSpeed = 15;
 
         function resizeCanvas() {
             width = canvas.width = canvas.parentElement.offsetWidth;
             height = canvas.height = canvas.parentElement.offsetHeight;
         }
 
-        class Particle {
+        class Star {
             constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.3;
-                this.vy = (Math.random() - 0.5) * 0.3;
-                this.size = Math.random() * 2;
-                this.phase = Math.random() * Math.PI * 2;
+                this.reset();
+            }
+            reset() {
+                this.x = (Math.random() - 0.5) * width;
+                this.y = (Math.random() - 0.5) * height;
+                this.z = Math.random() * width;
+                this.pz = this.z;
             }
             update() {
-                this.x += this.vx; this.y += this.vy;
-                this.phase += 0.05;
-                if(this.x < 0 || this.x > width) this.vx *= -1;
-                if(this.y < 0 || this.y > height) this.vy *= -1;
+                this.z = this.z - warpSpeed;
+                if (this.z < 1) {
+                    this.reset();
+                    this.z = width;
+                    this.pz = this.z;
+                }
             }
             draw() {
-                const alpha = (Math.sin(this.phase) + 1) / 2 * 0.5 + 0.1;
-                ctx.fillStyle = `rgba(6, 182, 212, ${alpha})`;
+                const cx = width / 2;
+                const cy = height / 2;
+
+                const sx = (this.x / this.z) * width + cx;
+                const sy = (this.y / this.z) * height + cy;
+
+                const px = (this.x / this.pz) * width + cx;
+                const py = (this.y / this.pz) * height + cy;
+                
+                this.pz = this.z;
+
+                // Opacity based on Z (closer = brighter)
+                const opacity = 1 - (this.z / width);
+
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.moveTo(px, py);
+                ctx.lineTo(sx, sy);
+                ctx.strokeStyle = `rgba(0, 240, 255, ${opacity})`;
+                ctx.lineWidth = opacity * 2;
+                ctx.stroke();
             }
         }
 
-        function initParticles() {
-            particles = [];
-            for(let i=0; i<50; i++) particles.push(new Particle());
+        function initStars() {
+            for(let i=0; i<numStars; i++) stars.push(new Star());
         }
 
         function animateCanvas() {
-            ctx.clearRect(0, 0, width, height);
-            ctx.strokeStyle = 'rgba(6, 182, 212, 0.05)';
-            ctx.lineWidth = 1;
-            for(let i=0; i<particles.length; i++) {
-                let p = particles[i]; p.update(); p.draw();
-                for(let j=i+1; j<particles.length; j++) {
-                    let p2 = particles[j];
-                    let dist = Math.sqrt((p.x-p2.x)**2 + (p.y-p2.y)**2);
-                    if(dist < 120) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
-                }
+            // Leave trails
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.fillRect(0, 0, width, height);
+
+            for(let i=0; i<stars.length; i++) {
+                stars[i].update();
+                stars[i].draw();
             }
             requestAnimationFrame(animateCanvas);
         }
@@ -831,6 +955,7 @@
                 state.inputCidr = z.config.cidr || 24;
                 state.inputMask = cidrToMask(state.inputCidr);
             }
+            selectedOsiLayer = null; // Reset OSI selection on tab switch
             scrambleText(document.getElementById('main-header'), 'NetSim Pro');
             render();
         }
@@ -865,6 +990,14 @@
                  title = "VLSM Allocation Strategy";
                  text = "Variable Length Subnet Masking (VLSM) allows efficient use of IP space. Select a subnet mask that accommodates the host requirement with minimal waste.";
                  type = "success";
+            } else if (t === 'academy') {
+                title = "Cyber Academy";
+                text = "Accessing Neural Network Training Modules. Select a topic below to begin data ingestion.";
+                type = "success";
+            } else if (t === 'osi') {
+                title = "OSI Model Stack";
+                text = "Interactive Holographic Visualization. Click any layer to pause the data packet and analyze its Protocol Data Unit (PDU) structure.";
+                type = "info";
             } else {
                  title = "Binary Matrix Decoder";
                  text = "Visualizing the subnet mask in binary helps understand where the Network portion ends and the Host portion begins.";
@@ -874,7 +1007,7 @@
             const icon = type === 'error' ? 'alert-triangle' : 'info';
             
             container.innerHTML = `
-                <div class="glass-panel border-l-4 ${borderColor} p-3 rounded-r text-sm fade-enter-active">
+                <div class="glass-panel border-l-4 ${borderColor} p-3 text-sm fade-enter-active">
                     <div class="font-bold mb-1 flex items-center gap-2 text-white font-cyber"><i data-lucide="${icon}" size="14"></i> ${title}</div>
                     <div class="text-slate-300 text-xs">${text}</div>
                 </div>
@@ -886,13 +1019,14 @@
             const tab = state.activeTab;
 
             if (tab === 'A' || tab === 'B') {
+                // ... (Existing ISP Content) ...
                 const ispKey = tab === 'A' ? 'ispA' : 'ispB';
                 const data = state[ispKey];
                 const isCfg = data.iBGPStatus === 'configured';
                 
                 container.innerHTML = `
                     <div class="space-y-4 fade-enter-active">
-                        <div class="p-4 border border-slate-700/50 rounded-lg bg-black/20 flex justify-between items-center">
+                        <div class="p-4 border border-slate-700/50 rounded-lg bg-black/40 flex justify-between items-center backdrop-blur-md">
                             <div>
                                 <label class="block text-xs text-slate-400 mb-1 font-cyber">Autonomous System (AS) <button onclick="showConcept('as_number')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
                                 <input type="number" 
@@ -909,7 +1043,7 @@
                             </div>
                         </div>
 
-                        <div class="p-4 border ${isCfg ? 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'border-slate-700'} rounded-lg glass-panel relative overflow-hidden transition-all duration-300">
+                        <div class="p-4 border ${isCfg ? 'border-green-500/50 shadow-[0_0_25px_rgba(34,197,94,0.1)]' : 'border-slate-700'} rounded-lg glass-panel relative overflow-hidden transition-all duration-300">
                              ${isCfg ? '<div class="absolute top-0 right-0 p-2"><i data-lucide="check-circle" class="text-green-500 neon-green"></i></div>' : ''}
                             <h3 class="font-bold text-sm mb-3 text-cyan-400 font-cyber tracking-wider">iBGP Configuration</h3>
                             
@@ -917,7 +1051,7 @@
                                 <div>
                                     <label class="block text-xs text-slate-400 mb-1">Router ID</label>
                                     <input id="inp-rid-${ispKey}" type="text" 
-                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        class="w-full cyber-input rounded-sm p-2 font-mono text-white outline-none" 
                                         placeholder="e.g., 10.10.1.1" 
                                         value="${data.routerId}"
                                         ${isCfg ? 'disabled' : ''}
@@ -926,7 +1060,7 @@
                                 <div>
                                     <label class="block text-xs text-slate-400 mb-1">Local Pref <button onclick="showConcept('local_pref')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
                                     <input id="inp-pref-${ispKey}" type="number" 
-                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        class="w-full cyber-input rounded-sm p-2 font-mono text-white outline-none" 
                                         value="${data.localPref}"
                                         onchange="state['${ispKey}'].localPref = parseInt(this.value)">
                                 </div>
@@ -936,58 +1070,59 @@
                                 <div>
                                     <label class="block text-xs text-slate-400 mb-1">Keepalive (sec)</label>
                                     <input type="number" 
-                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        class="w-full cyber-input rounded-sm p-2 font-mono text-white outline-none" 
                                         value="${data.keepalive}"
                                         onchange="state['${ispKey}'].keepalive = parseInt(this.value)">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-slate-400 mb-1">Hold Time (sec)</label>
                                     <input type="number" 
-                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        class="w-full cyber-input rounded-sm p-2 font-mono text-white outline-none" 
                                         value="${data.holdtime}"
                                         onchange="state['${ispKey}'].holdtime = parseInt(this.value)">
                                 </div>
                             </div>
 
                             <button onclick="handleConfigIBGP('${ispKey}')" 
-                                class="w-full py-2 rounded font-bold text-sm transition-all relative overflow-hidden group mb-4
-                                ${isCfg ? 'bg-green-600 text-white cursor-default' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/50'}">
+                                class="w-full py-2 rounded-sm font-bold text-sm transition-all relative overflow-hidden group mb-4
+                                ${isCfg ? 'bg-green-600 text-white cursor-default' : 'bg-cyan-700 hover:bg-cyan-600 text-white shadow-lg shadow-cyan-900/50 border border-cyan-500/30'}">
                                 <span class="relative z-10">${isCfg ? 'System Online' : 'Initialize Daemon'}</span>
                             </button>
 
                              <!-- IOS PREVIEW -->
-                             <div class="bg-black/40 border border-slate-800 rounded p-2 font-mono text-[10px] text-slate-400 overflow-x-auto">
-                                <div class="text-cyan-600 mb-1 select-none"># LIVE ROUTE CONFIG</div>
-                                <pre>${generateIOSConfig(ispKey)}</pre>
+                             <div class="bg-black/60 border border-slate-800 rounded p-2 font-mono text-[10px] text-slate-400 overflow-x-auto shadow-inner">
+                                <div class="text-cyan-600 mb-1 select-none font-bold"># LIVE ROUTE CONFIG</div>
+                                <pre class="text-green-500/80">${generateIOSConfig(ispKey)}</pre>
                              </div>
                         </div>
                     </div>
                 `;
             } 
             else if (tab === 'eBGP') {
+                // ... (Existing eBGP Content) ...
                 const p = state.peering;
                 const isCfg = p.status === 'configured';
 
                 container.innerHTML = `
                     <div class="space-y-4 fade-enter-active">
                         <div class="p-4 border ${isCfg ? 'border-green-500' : 'border-yellow-500/50'} rounded-lg glass-panel relative">
-                             <div class="absolute -top-3 left-4 bg-slate-900 px-2 text-xs font-bold text-yellow-500 border border-yellow-600 rounded font-cyber">CORE LINK</div>
+                             <div class="absolute -top-3 left-4 bg-[#050510] px-2 text-xs font-bold text-yellow-500 border border-yellow-600 rounded font-cyber shadow-[0_0_10px_rgba(234,179,8,0.3)]">CORE LINK</div>
                              
                              <div class="mt-2 mb-3">
                                 <label class="block text-xs text-slate-400 mb-1">Peering Network IP (/30 recommended) <button onclick="showConcept('ebgp_subnet')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
-                                <input type="text" class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                <input type="text" class="w-full cyber-input rounded-sm p-2 font-mono text-white outline-none" 
                                     placeholder="192.168.x.x" value="${p.ip}" ${isCfg ? 'disabled' : ''} onchange="state.peering.ip = this.value">
                              </div>
 
                              <div class="mb-4">
                                 <label class="block text-xs text-slate-400 mb-1">Remote AS Number</label>
-                                <input type="number" class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                <input type="number" class="w-full cyber-input rounded-sm p-2 font-mono text-white outline-none" 
                                     value="${p.remoteAs}" ${isCfg ? 'disabled' : ''} onchange="state.peering.remoteAs = this.value">
                              </div>
 
                              <button onclick="handleConfigEBGP()" 
-                                class="w-full py-2 rounded font-bold text-sm transition-all relative overflow-hidden group
-                                ${isCfg ? 'bg-green-600 text-white' : 'bg-yellow-600 hover:bg-yellow-500 text-white shadow-lg shadow-yellow-900/50'}">
+                                class="w-full py-2 rounded-sm font-bold text-sm transition-all relative overflow-hidden group
+                                ${isCfg ? 'bg-green-600 text-white' : 'bg-yellow-600 hover:bg-yellow-500 text-white shadow-lg shadow-yellow-900/50 border border-yellow-500/30'}">
                                 <span class="relative z-10">${isCfg ? 'Link Established' : 'Connect Peer'}</span>
                             </button>
                         </div>
@@ -995,10 +1130,11 @@
                 `;
             }
             else if (tab === 'zones') {
+                // ... (Existing Zones Content) ...
                 const zList = state.zones.map(z => `
                     <div onclick="state.selectedZoneId=${z.id}; state.inputIp='${z.config.ip}'; state.inputCidr=${z.config.cidr||24}; state.inputMask=cidrToMask(state.inputCidr); render();" 
                          class="cursor-pointer p-2 rounded mb-1 border flex justify-between items-center text-xs transition-all duration-200
-                         ${state.selectedZoneId === z.id ? 'bg-cyan-900/40 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'bg-slate-800/50 border-transparent hover:bg-slate-700/50'}">
+                         ${state.selectedZoneId === z.id ? 'bg-cyan-900/40 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.2)] scale-[1.02]' : 'bg-slate-800/30 border-transparent hover:bg-slate-700/50'}">
                         <span class="font-bold font-mono ${z.status === 'online' ? 'text-green-400 neon-green' : 'text-slate-300'}">${z.name}</span>
                         <span class="${z.ispId==='A'?'text-green-500':'text-blue-500'} font-mono font-bold text-[10px]">AS${z.ispId==='A'?state.ispA.as:state.ispB.as}</span>
                     </div>
@@ -1011,7 +1147,7 @@
                 const wastePercent = Math.min(100, (waste / totalHosts) * 100);
 
                 container.innerHTML = `
-                    <div class="flex flex-col sm:flex-row gap-4 h-[350px] fade-enter-active">
+                    <div class="flex flex-col sm:flex-row gap-4 h-[380px] fade-enter-active">
                         <div class="w-full sm:w-1/3 overflow-y-auto pr-2 custom-scrollbar border-b sm:border-b-0 sm:border-r border-slate-700 pb-2 sm:pb-0 h-1/3 sm:h-full">
                             ${zList}
                         </div>
@@ -1024,22 +1160,22 @@
                                     </h3>
                                     <div class="text-xs text-slate-400">Req: <span class="text-white font-bold">${currZ.hostsRequired}</span> hosts <button onclick="showConcept('vlsm')" class="text-cyan-400 hover:text-white ml-1">[?]</button></div>
                                 </div>
-                                <div class="text-[10px] font-mono px-2 py-1 rounded bg-black/40 border border-slate-600 text-${ispData.color}-400">
+                                <div class="text-[10px] font-mono px-2 py-1 rounded bg-black/60 border border-slate-700 text-${ispData.color}-400 shadow-inner">
                                     Source: ${ispData.block}/${ispData.cidr}
                                 </div>
                             </div>
 
-                            <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                            <div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar">
                                 <div>
-                                    <label class="block text-xs text-slate-400 mb-1">Network Address (Auto-detects /CIDR on paste)</label>
-                                    <input type="text" class="w-full cyber-input rounded p-2 font-mono text-white text-sm outline-none" 
+                                    <label class="block text-xs text-slate-400 mb-1">Network Address (Auto-detects /CIDR)</label>
+                                    <input type="text" class="w-full cyber-input rounded-sm p-2 font-mono text-white text-sm outline-none" 
                                         value="${state.inputIp}" oninput="handleIpInput(this.value)">
                                 </div>
                                 
                                 <div class="grid grid-cols-2 gap-4">
                                      <div>
                                         <label class="block text-xs text-slate-400 mb-1">Subnet Mask</label>
-                                        <input type="text" class="w-full cyber-input rounded p-2 font-mono text-white text-sm outline-none" 
+                                        <input type="text" class="w-full cyber-input rounded-sm p-2 font-mono text-white text-sm outline-none" 
                                             value="${state.inputMask}" onchange="updateZoneMask(this.value)">
                                      </div>
                                      <div>
@@ -1049,16 +1185,16 @@
                                      </div>
                                 </div>
 
-                                <div>
+                                <div class="bg-black/40 p-2 rounded border border-slate-800">
                                     <label class="block text-xs text-slate-400 mb-1 flex justify-between">
                                         <span>Efficiency Analysis</span>
                                         <span class="${wastePercent > 50 ? 'text-red-400' : 'text-green-400'}">Waste: ${wastePercent.toFixed(1)}%</span>
                                     </label>
                                     
                                     <!-- Visual Efficiency Bar -->
-                                    <div class="h-2 w-full bg-slate-800 rounded mt-2 overflow-hidden flex">
-                                        <div class="bg-green-500 h-full" style="width: ${100 - wastePercent}%"></div>
-                                        <div class="bg-red-500/50 h-full" style="width: ${wastePercent}%"></div>
+                                    <div class="h-2 w-full bg-slate-900 rounded-sm mt-2 overflow-hidden flex border border-slate-700">
+                                        <div class="bg-gradient-to-r from-green-600 to-green-400 h-full" style="width: ${100 - wastePercent}%"></div>
+                                        <div class="bg-red-500/30 h-full" style="width: ${wastePercent}%"></div>
                                     </div>
                                     <div class="flex justify-between text-[9px] text-slate-500 mt-1 font-mono">
                                         <span>Used: ${currZ.hostsRequired}</span>
@@ -1067,7 +1203,7 @@
                                 </div>
                                 
                                 <div class="mt-auto pt-2">
-                                    <button onclick="handleZoneConnect()" class="w-full py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded font-bold text-sm shadow-lg shadow-cyan-900/40 border border-cyan-500/30 transition-all hover:scale-[1.02]">
+                                    <button onclick="handleZoneConnect()" class="w-full py-2 bg-gradient-to-r from-cyan-700 to-blue-700 hover:from-cyan-600 hover:to-blue-600 text-white rounded-sm font-bold text-sm shadow-lg shadow-cyan-900/40 border border-cyan-500/30 transition-all hover:scale-[1.02]">
                                         Advertise Route
                                     </button>
                                 </div>
@@ -1076,14 +1212,149 @@
                     </div>
                 `;
             }
+            else if (tab === 'academy') {
+                // ... (Existing Academy Content) ...
+                container.innerHTML = `
+                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
+                        <!-- MODULE 1: PUBLIC VS PRIVATE -->
+                        <div class="glass-panel p-4 rounded-sm border border-cyan-500/30">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="globe" class="text-cyan-400" size="16"></i> IP Scope Architecture</h3>
+                                <div class="text-[10px] font-mono text-cyan-400 border border-cyan-800 px-1 bg-cyan-900/20">MODULE_01</div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <!-- PUBLIC -->
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden">
+                                    <div class="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors"></div>
+                                    <div class="text-cyan-400 font-bold font-tech mb-1">PUBLIC (WAN)</div>
+                                    <p class="text-[10px] text-slate-400 mb-2 leading-relaxed">Globally unique. Like a physical home address. Necessary for internet communication.</p>
+                                    
+                                    <!-- VISUAL -->
+                                    <div class="h-12 bg-slate-900/80 rounded border border-slate-700 relative overflow-hidden flex items-center justify-center">
+                                        <div class="absolute w-full h-0.5 bg-slate-800"></div>
+                                        <div class="w-2 h-2 bg-cyan-400 rounded-full edu-particle shadow-[0_0_5px_cyan]"></div>
+                                        <i data-lucide="globe" class="absolute left-1 text-slate-600 w-4 h-4"></i>
+                                        <i data-lucide="server" class="absolute right-1 text-slate-600 w-4 h-4"></i>
+                                    </div>
+                                </div>
+
+                                <!-- PRIVATE -->
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden">
+                                    <div class="absolute inset-0 bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors"></div>
+                                    <div class="text-purple-400 font-bold font-tech mb-1">PRIVATE (LAN)</div>
+                                    <p class="text-[10px] text-slate-400 mb-2 leading-relaxed">Locally unique. Like a room number. Cannot travel the internet without NAT.</p>
+                                    
+                                    <!-- VISUAL -->
+                                    <div class="h-12 bg-slate-900/80 rounded border border-slate-700 relative overflow-hidden flex items-center justify-center">
+                                        <div class="absolute inset-2 border border-dashed border-purple-500/30 rounded"></div>
+                                        <div class="w-2 h-2 bg-purple-400 rounded-full edu-contained shadow-[0_0_5px_purple]"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RFC1918 RANGES -->
+                            <div class="bg-slate-900/80 p-2 rounded border-l-2 border-purple-500 text-[10px] font-mono text-slate-400">
+                                <span class="text-white font-bold block mb-1">RFC 1918 BLOCKS (SAFE ZONES):</span>
+                                <div class="flex gap-2">
+                                    <span class="bg-black px-1 rounded text-purple-300 border border-purple-900/50 hover:bg-purple-900/30 transition-colors cursor-help" title="Enterprise Scale">10.0.0.0/8</span>
+                                    <span class="bg-black px-1 rounded text-purple-300 border border-purple-900/50 hover:bg-purple-900/30 transition-colors cursor-help" title="Mid-size Networks">172.16.0.0/12</span>
+                                    <span class="bg-black px-1 rounded text-purple-300 border border-purple-900/50 hover:bg-purple-900/30 transition-colors cursor-help" title="Home/Small Office">192.168.0.0/16</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MODULE 2: STATIC VS DYNAMIC -->
+                        <div class="glass-panel p-4 rounded-sm border border-yellow-500/30">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="zap" class="text-yellow-400" size="16"></i> Assignment Logic</h3>
+                                <div class="text-[10px] font-mono text-yellow-400 border border-yellow-800 px-1 bg-yellow-900/20">MODULE_02</div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- DYNAMIC -->
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden">
+                                    <div class="text-yellow-400 font-bold font-tech mb-1 flex items-center gap-2"><i data-lucide="refresh-cw" size="12"></i> DYNAMIC (DHCP)</div>
+                                    <p class="text-[10px] text-slate-400 mb-2">Temporary lease. Changes automatically. Good for clients (phones, laptops).</p>
+                                    <div class="text-center font-mono text-white text-xs bg-slate-900 p-1 rounded border border-slate-700 edu-dynamic-text shadow-inner h-6 flex items-center justify-center"></div>
+                                </div>
+
+                                <!-- STATIC -->
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden">
+                                    <div class="text-green-400 font-bold font-tech mb-1 flex items-center gap-2"><i data-lucide="lock" size="12"></i> STATIC</div>
+                                    <p class="text-[10px] text-slate-400 mb-2">Permanent assignment. Configured manually. Critical for Servers/Routers.</p>
+                                    <div class="text-center font-mono text-green-400 text-xs bg-slate-900 p-1 rounded border border-green-900/50 shadow-[0_0_10px_rgba(34,197,94,0.2)] h-6 flex items-center justify-center">
+                                        10.20.1.5 <i data-lucide="lock" size="10" class="ml-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (tab === 'osi') {
+                const layerHtml = osiLayers.map(l => `
+                    <div class="osi-layer p-2 rounded-sm border-l-2 border-slate-700 bg-black/60 mb-2 relative overflow-hidden ${selectedOsiLayer === l.id ? 'active' : ''}" 
+                         onclick="selectedOsiLayer = ${l.id}; render();">
+                        <div class="flex justify-between items-center relative z-10">
+                            <span class="font-mono text-xs text-slate-500 w-6">L${l.id}</span>
+                            <span class="font-bold text-sm ${selectedOsiLayer === l.id ? 'text-white' : 'text-slate-300'} flex-1 font-tech">${l.name}</span>
+                            <span class="text-[10px] font-mono text-cyan-500">${l.pdu}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                const detail = selectedOsiLayer ? osiLayers.find(l => l.id === selectedOsiLayer) : null;
+
+                container.innerHTML = `
+                    <div class="flex gap-4 h-full fade-enter-active">
+                        <div class="w-1/2 flex flex-col justify-center relative">
+                            <div class="absolute left-1/2 top-0 bottom-0 w-px bg-slate-800 -translate-x-1/2 z-0"></div>
+                            <!-- PACKET ANIMATION -->
+                            <div class="packet-flow-down" style="${selectedOsiLayer ? 'animation-play-state: paused; top: ' + ((7 - selectedOsiLayer) * 14.5 + 5) + '%' : ''}"></div>
+                            <div class="relative z-10 space-y-1">
+                                ${layerHtml}
+                            </div>
+                        </div>
+                        
+                        <div class="w-1/2 glass-panel p-4 rounded-sm border border-pink-500/30 flex flex-col justify-center">
+                            ${detail ? `
+                                <div class="fade-enter-active">
+                                    <div class="text-[10px] text-pink-400 font-mono mb-2 uppercase tracking-widest border-b border-pink-500/30 pb-1">Decryption Panel</div>
+                                    <h2 class="text-2xl font-bold text-white font-cyber mb-1">${detail.name}</h2>
+                                    <div class="text-xs text-slate-400 font-mono mb-4">PDU: <span class="text-cyan-400">${detail.pdu}</span></div>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="bg-black/40 p-3 rounded border border-slate-700">
+                                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Analogy</div>
+                                            <div class="text-sm text-yellow-400 font-tech">"${detail.analogy}"</div>
+                                        </div>
+                                        
+                                        <div class="bg-black/40 p-3 rounded border border-slate-700">
+                                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Function</div>
+                                            <div class="text-xs text-slate-300 leading-relaxed">${detail.detail}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="text-center text-slate-500 fade-enter-active">
+                                    <i data-lucide="layers" class="w-12 h-12 mx-auto mb-3 opacity-50 animate-pulse"></i>
+                                    <p class="text-xs font-mono">Select a layer to halt the data stream and analyze protocols.</p>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }
             else if (tab === 'calc') {
+                // ... (Existing Calculator Content) ...
                 container.innerHTML = `
                     <div class="glass-panel rounded p-4 border border-slate-700 fade-enter-active">
                         <h3 class="font-bold text-cyan-400 mb-4 flex gap-2 items-center font-cyber"><i data-lucide="calculator"></i> Binary Matrix</h3>
                         <div class="flex gap-2 mb-4">
-                            <input id="calc-ip" type="text" placeholder="IP Address" class="cyber-input p-2 rounded font-mono text-white flex-1 min-w-0 outline-none">
-                            <input id="calc-cidr" type="number" placeholder="24" class="cyber-input p-2 rounded font-mono text-white w-16 outline-none">
-                            <button onclick="runCalc()" class="bg-cyan-600 text-white px-4 rounded hover:bg-cyan-500 font-bold border border-cyan-400/50">Calc</button>
+                            <input id="calc-ip" type="text" placeholder="IP Address" class="cyber-input p-2 rounded-sm font-mono text-white flex-1 min-w-0 outline-none">
+                            <input id="calc-cidr" type="number" placeholder="24" class="cyber-input p-2 rounded-sm font-mono text-white w-16 outline-none">
+                            <button onclick="runCalc()" class="bg-cyan-700 text-white px-4 rounded-sm hover:bg-cyan-600 font-bold border border-cyan-500/50 transition-colors">Calc</button>
                         </div>
                         <div id="calc-results" class="text-xs font-mono space-y-2 text-slate-300">
                             Enter values to decode binary stream.
@@ -1093,6 +1364,7 @@
             }
         }
 
+        // ... (Rest of existing JS functions: runCalc, renderMap, updateGlobalStatus, render, window.onload) ...
         function runCalc() {
             const ip = document.getElementById('calc-ip').value;
             const cidr = parseInt(document.getElementById('calc-cidr').value);
@@ -1127,7 +1399,7 @@
 
             let svgContent = `<defs>
                 <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="2" result="blur" />
+                    <feGaussianBlur stdDeviation="3" result="blur" />
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
             </defs>`;
@@ -1139,21 +1411,21 @@
             const drawISPNode = (pos, data, key) => {
                 const isActive = data.iBGPStatus === 'configured';
                 if(isActive) {
-                     svgContent += `<circle cx="${pos.x}%" cy="${pos.y}%" r="35" stroke="${key==='ispA'?'#22c55e':'#3b82f6'}" stroke-width="1" fill="none" opacity="0.3">
-                        <animate attributeName="r" values="35;45;35" dur="3s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" repeatCount="indefinite" />
+                     svgContent += `<circle cx="${pos.x}%" cy="${pos.y}%" r="35" stroke="${key==='ispA'?'#22c55e':'#3b82f6'}" stroke-width="2" fill="none" opacity="0.4" filter="url(#glow)">
+                        <animate attributeName="r" values="35;48;35" dur="3s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite" />
                      </circle>`;
                 }
                 
                 nodesHtml += `
                     <div style="left: ${pos.x}%; top: ${pos.y}%; transform: translate(-50%, -50%);" 
                          class="absolute flex flex-col items-center pointer-events-auto cursor-pointer group" onclick="switchTab('${key==='ispA'?'A':'B'}')">
-                        <div class="w-12 h-12 md:w-16 md:h-16 rounded-full border-4 ${isActive ? (key==='ispA'?'border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.6)]':'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]') : 'border-slate-600'} 
-                             bg-slate-900 flex items-center justify-center z-10 transition-all duration-500 group-hover:scale-110 relative overflow-hidden">
-                            <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <i data-lucide="server" class="${isActive ? (key==='ispA'?'text-green-400':'text-blue-400') : 'text-slate-500'}"></i>
+                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 ${isActive ? (key==='ispA'?'border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.5)] bg-green-900/20':'border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.5)] bg-blue-900/20') : 'border-slate-600 bg-black'} 
+                             flex items-center justify-center z-10 transition-all duration-500 group-hover:scale-110 relative overflow-hidden backdrop-blur-sm">
+                            <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <i data-lucide="server" class="${isActive ? (key==='ispA'?'text-green-400':'text-blue-400') : 'text-slate-500'} w-6 h-6"></i>
                         </div>
-                        <div class="mt-3 bg-black/80 backdrop-blur px-2 py-1 rounded border border-slate-700 text-[8px] md:text-[10px] font-bold text-slate-300 font-mono shadow-lg">
+                        <div class="mt-3 bg-black/80 backdrop-blur px-2 py-1 rounded border border-slate-700 text-[10px] font-bold text-slate-300 font-mono shadow-lg tracking-wider">
                             AS ${data.as}
                         </div>
                     </div>
@@ -1171,8 +1443,8 @@
                 
                 const pathD = `M ${x1 + offset} ${y1} L ${x2 - offset} ${y2}`;
                 svgContent += `
-                    <path d="${pathD}" stroke="#eab308" stroke-width="4" fill="none" class="draw-path" filter="url(#glow)" opacity="0.8"/>
-                    <path d="${pathD}" stroke="#fef08a" stroke-width="2" fill="none" stroke-dasharray="5,5" class="animate-dash-slow" />
+                    <path d="${pathD}" stroke="#eab308" stroke-width="3" fill="none" class="draw-path" filter="url(#glow)" opacity="0.9"/>
+                    <path d="${pathD}" stroke="#fff" stroke-width="1" fill="none" stroke-dasharray="10,20" class="animate-dash-slow" opacity="0.8" />
                 `;
             }
 
@@ -1192,13 +1464,14 @@
                 
                 const pathD = `M ${x1} ${y1} Q ${(x1+x2)/2} ${y1} ${x2} ${y2}`;
 
-                svgContent += `<path d="${pathD}" stroke="#1e293b" stroke-width="4" fill="none" opacity="0.5" />`;
+                svgContent += `<path d="${pathD}" stroke="#1e293b" stroke-width="2" fill="none" opacity="0.3" />`;
                 
                 if (isOnline) {
                     svgContent += `<path d="${pathD}" stroke="${color}" stroke-width="2" fill="none" class="draw-path" filter="url(#glow)" />`;
+                    // Moving particle
                     svgContent += `
-                        <circle r="3" fill="#fff">
-                            <animateMotion dur="${zone.ispId === 'A' && state.ispA.localPref > 100 ? '1s' : '2s'}" repeatCount="indefinite" path="${pathD}" rotate="auto" />
+                        <circle r="2" fill="#fff">
+                            <animateMotion dur="${zone.ispId === 'A' && state.ispA.localPref > 100 ? '0.5s' : '1.5s'}" repeatCount="indefinite" path="${pathD}" rotate="auto" />
                         </circle>
                     `;
                 }
@@ -1208,19 +1481,18 @@
                     const cy = slot.y * (height/100);
                     svgContent += `
                         <g transform="translate(${cx}, ${cy})">
-                            <circle r="35" stroke="#06b6d4" stroke-width="1" fill="none" stroke-dasharray="10 5" class="animate-spin-slow" opacity="0.6"/>
-                            <circle r="40" stroke="#06b6d4" stroke-width="1" fill="none" stroke-dasharray="2 8" class="animate-spin-reverse" opacity="0.4"/>
-                            <path d="M-45,0 L-35,0 M45,0 L35,0 M0,-45 L0,-35 M0,45 L0,35" stroke="#06b6d4" stroke-width="2" />
+                            <circle r="30" stroke="#00f0ff" stroke-width="1" fill="none" stroke-dasharray="20 10" class="animate-spin-slow" opacity="0.8"/>
+                            <path d="M-35,0 L-25,0 M35,0 L25,0 M0,-35 L0,-25 M0,35 L0,25" stroke="#00f0ff" stroke-width="2" />
                         </g>
                     `;
                 }
 
                 nodesHtml += `
                     <div style="left: ${slot.x}%; top: ${slot.y}%; transform: translate(-50%, -50%);" 
-                         class="absolute w-10 h-10 md:w-12 md:h-12 rounded bg-slate-900 border-2 ${isOnline ? (zone.ispId==='A'?'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]':'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]') : (isSelected ? 'border-cyan-500' : 'border-slate-700')} flex items-center justify-center z-20 pointer-events-auto cursor-pointer hover:scale-110 transition-transform"
+                         class="absolute w-12 h-12 md:w-14 md:h-14 rounded-full bg-black border ${isOnline ? (zone.ispId==='A'?'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]':'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]') : (isSelected ? 'border-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'border-slate-800')} flex items-center justify-center z-20 pointer-events-auto cursor-pointer hover:scale-110 transition-transform"
                          onclick="state.selectedZoneId=${zone.id}; state.inputIp='${zone.config.ip}'; state.inputCidr=${zone.config.cidr||24}; state.inputMask=cidrToMask(state.inputCidr); switchTab('zones');">
                         <i data-lucide="home" class="w-5 h-5 ${isOnline ? 'text-white' : 'text-slate-500'}"></i>
-                        <div class="absolute -bottom-6 text-[9px] w-24 text-center text-slate-400 font-mono bg-black/60 rounded px-1">${zone.name}</div>
+                        <div class="absolute -bottom-6 text-[9px] w-24 text-center text-slate-400 font-mono bg-black/80 rounded px-1 border border-slate-800">${zone.name}</div>
                     </div>
                 `;
             });
@@ -1289,7 +1561,7 @@
 
         window.onload = () => {
             resizeCanvas();
-            initParticles();
+            initStars();
             animateCanvas();
             render();
             window.addEventListener('resize', () => {
