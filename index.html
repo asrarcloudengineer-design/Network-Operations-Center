@@ -316,38 +316,99 @@
         // --- KNOWLEDGE BASE (CORTEX) ---
         const knowledgeDb = {
             'as_number': {
-                title: 'Autonomous System (AS) Number',
+                title: 'Guide: Initial BGP Setup',
                 content: `
-                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "AS numbers are just random IDs."</p>
-                    <p class="mb-2">An AS number is a globally unique identifier defining a group of IP prefixes run by one operator. It is the fundamental unit of the internet's routing trust model.</p>
-                    <ul class="list-disc pl-4 space-y-1 text-slate-400">
-                        <li><strong class="text-cyan-400">1 - 64,511:</strong> Public Internet AS (Routable).</li>
-                        <li><strong class="text-orange-400">64,512 - 65,534:</strong> Private Use (Internal only, like private IPs).</li>
-                    </ul>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="bg-cyan-900/50 text-cyan-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-cyan-700 shrink-0">1</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Define Autonomous System (AS)</h4>
+                                <p class="text-slate-400 text-[10px]">Select your globally unique AS Number. Public internet routing requires 1-64511.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-cyan-900/50 text-cyan-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-cyan-700 shrink-0">2</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Establish Router Identity</h4>
+                                <p class="text-slate-400 text-[10px]">Configure a 32-bit Router ID (usually a Loopback IP like 1.1.1.1) to uniquely identify this node in the BGP mesh.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-cyan-900/50 text-cyan-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-cyan-700 shrink-0">3</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Tune Timers</h4>
+                                <p class="text-slate-400 text-[10px]">Set Keepalive (default 60s) and Hold Time (default 180s) to control failure detection speed.</p>
+                            </div>
+                        </div>
+                    </div>
                 `
             },
             'local_pref': {
-                title: 'LOCAL_PREF (Local Preference)',
+                title: 'Guide: Outbound Traffic Policy',
                 content: `
-                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "LOCAL_PREF influences how others route to me."</p>
-                    <p class="mb-2">Wrong. LOCAL_PREF is an <em>outbound</em> policy attribute. It tells routers inside <em>your</em> AS which exit door to prefer when sending traffic out to the internet.</p>
-                    <p>It never leaves your AS. The default value is 100. Higher is always preferred.</p>
+                    <p class="mb-2"><strong class="text-white">Mechanism:</strong> LOCAL_PREF is a value attached to routes <em>inside</em> your AS.</p>
+                    <ul class="list-disc pl-4 space-y-1 text-slate-400 mb-2">
+                        <li>It tells your internal routers: "Use this exit point."</li>
+                        <li>It is <strong>never</strong> sent to eBGP neighbors.</li>
+                        <li>Default is 100. Higher value = Preferred path.</li>
+                    </ul>
+                    <p class="text-green-400 text-[10px]"><strong>Scenario:</strong> Set ISP A to 200 and ISP B to 100 to force all outbound traffic through ISP A.</p>
                 `
             },
             'ebgp_subnet': {
-                title: 'eBGP Peering Subnets',
+                title: 'Guide: eBGP Peering',
                 content: `
-                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "I can use a /24 for a point-to-point link."</p>
-                    <p class="mb-2">While technically possible, using a /24 (254 hosts) for a link with only 2 routers is wasteful and dangerous. It creates a large broadcast domain vulnerable to ARP spoofing.</p>
-                    <p><strong class="text-green-400">Best Practice:</strong> Use a <strong>/30</strong> (4 IPs, 2 usable) or a <strong>/31</strong> (2 IPs, 2 usable) to minimize attack surface and address waste.</p>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="bg-yellow-900/50 text-yellow-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-yellow-700 shrink-0">1</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Layer 1/2 Connectivity</h4>
+                                <p class="text-slate-400 text-[10px]">Ensure physical link is up. Assign IPs from a /30 subnet (e.g., 192.168.1.1 & 192.168.1.2) to minimize broadcast domains.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-yellow-900/50 text-yellow-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-yellow-700 shrink-0">2</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Define Neighbor</h4>
+                                <p class="text-slate-400 text-[10px]">Point your router to the remote peer's IP and specify their Remote AS number.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-yellow-900/50 text-yellow-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-yellow-700 shrink-0">3</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Handshake</h4>
+                                <p class="text-slate-400 text-[10px]">Routers exchange TCP SYN (Port 179). Once established, they exchange Routing Tables (NLRI).</p>
+                            </div>
+                        </div>
+                    </div>
                 `
             },
             'vlsm': {
-                title: 'VLSM (Variable Length Subnet Mask)',
+                title: 'Guide: Network Advertising',
                 content: `
-                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "Subnet masks must be the same size everywhere."</p>
-                    <p class="mb-2">VLSM allows you to "subnet a subnet." You can have a large /24 for WiFi clients and a tiny /30 for a router link within the same network block.</p>
-                    <p>This efficiency is critical. IPv4 addresses are exhausted; wasting them is poor engineering.</p>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="bg-purple-900/50 text-purple-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-purple-700 shrink-0">1</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Calculate Requirement</h4>
+                                <p class="text-slate-400 text-[10px]">Determine hosts needed. Always add +2 (Network ID + Broadcast IP) and round up to the nearest power of 2.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-purple-900/50 text-purple-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-purple-700 shrink-0">2</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Select Subnet Mask</h4>
+                                <p class="text-slate-400 text-[10px]">Use VLSM to pick the tightest mask. Example: 50 hosts fits in a /26 (64 IPs), not a /27 (32 IPs).</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-purple-900/50 text-purple-400 w-6 h-6 flex items-center justify-center rounded font-bold text-xs border border-purple-700 shrink-0">3</div>
+                            <div>
+                                <h4 class="text-white font-bold text-xs mb-1">Advertise</h4>
+                                <p class="text-slate-400 text-[10px]">Inject the route into BGP using the <code>network</code> command. The route must exist in the routing table exactly as advertised.</p>
+                            </div>
+                        </div>
+                    </div>
                 `
             }
         };
@@ -436,8 +497,8 @@
         const BGP_PEERING_RANGE_IP = '192.168.0.0';
         const BGP_PEERING_CIDR = 16;
         
-        const initialIspA = { name: 'ISP A', block: '10.0.0.0', cidr: 8, as: 65001, color: 'green' };
-        const initialIspB = { name: 'ISP B', block: '172.16.0.0', cidr: 12, as: 65002, color: 'blue' };
+        const initialIspA = { name: 'ISP A', block: '10.0.0.0', cidr: 8, as: 65001, color: 'green', keepalive: 60, holdtime: 180 };
+        const initialIspB = { name: 'ISP B', block: '172.16.0.0', cidr: 12, as: 65002, color: 'blue', keepalive: 60, holdtime: 180 };
 
         let state = {
             score: 0,
@@ -449,7 +510,8 @@
             zones: [],
             selectedZoneId: null,
             inputIp: '',
-            inputCidr: 24
+            inputCidr: 24,
+            inputMask: '255.255.255.0'
         };
 
         function generateZones() {
@@ -485,6 +547,22 @@
 
         const longToIp = (long) => [(long >>> 24) & 0xFF, (long >>> 16) & 0xFF, (long >>> 8) & 0xFF, long & 0xFF].join('.');
 
+        const cidrToMask = (cidr) => {
+             const maskLong = ~((1 << (32 - cidr)) - 1);
+             return longToIp(maskLong >>> 0);
+        };
+
+        const maskToCidr = (mask) => {
+            const long = ipToLong(mask);
+            if(long === null) return null;
+            let cidr = 0;
+            for(let i=31; i>=0; i--) {
+                if((long & (1<<i)) !== 0) cidr++;
+                else break;
+            }
+            return cidr;
+        };
+
         const isIpInSubnet = (ipLong, networkLong, cidr) => {
             const mask = ~((1 << (32 - cidr)) - 1);
             return (ipLong & mask) === (networkLong & mask);
@@ -513,6 +591,73 @@
             return parts.map(octetToBinary).join('.');
         }
 
+        // --- NEW HELPERS FOR UI ---
+        function updateZoneMask(val) {
+            state.inputMask = val;
+            const cidr = maskToCidr(val);
+            if(cidr) {
+                state.inputCidr = cidr;
+                renderContent();
+            }
+        }
+        function updateZoneCidr(val) {
+            state.inputCidr = parseInt(val);
+            state.inputMask = cidrToMask(state.inputCidr);
+            renderContent();
+        }
+        function handleIpInput(val) {
+            // Check for paste with CIDR (e.g., 10.0.0.1/24)
+            if(val.includes('/')) {
+                const parts = val.split('/');
+                if(parts.length === 2) {
+                    const ip = parts[0].trim();
+                    const cidr = parseInt(parts[1]);
+                    if(cidr >= 8 && cidr <= 30) {
+                        state.inputIp = ip;
+                        state.inputCidr = cidr;
+                        state.inputMask = cidrToMask(cidr);
+                        renderContent();
+                        return;
+                    }
+                }
+            } 
+            
+            state.inputIp = val;
+            
+            // Auto detect classful mask if it looks like a complete IP
+            const parts = val.split('.');
+            if(parts.length === 4 && parts.every(p => p.length > 0) && !state.ipAutoDetected) {
+                const firstOctet = parseInt(parts[0]);
+                let detectedCidr = 24;
+                if(firstOctet >= 1 && firstOctet <= 126) detectedCidr = 8; // Class A
+                else if(firstOctet >= 128 && firstOctet <= 191) detectedCidr = 16; // Class B
+                // Class C is default
+                
+                state.inputCidr = detectedCidr;
+                state.inputMask = cidrToMask(detectedCidr);
+                state.ipAutoDetected = true; // prevent constant flapping
+                renderContent();
+            } else if (parts.length < 4) {
+                state.ipAutoDetected = false; // reset flag if they delete
+            }
+        }
+
+        function generateIOSConfig(ispKey) {
+            const d = state[ispKey];
+            return `router bgp ${d.as}
+ bgp router-id ${d.routerId || '0.0.0.0'}
+ bgp log-neighbor-changes
+ timers bgp ${d.keepalive} ${d.holdtime}
+ neighbor 192.168.0.2 remote-as ${ispKey === 'ispA' ? state.ispB.as : state.ispA.as}
+ neighbor 192.168.0.2 description PEERING_LINK
+ !
+ address-family ipv4
+  network ${d.block} mask ${cidrToMask(d.cidr)}
+  neighbor 192.168.0.2 activate
+  neighbor 192.168.0.2 route-map SET_LP_${d.localPref} out
+ exit-address-family`;
+        }
+
         // --- LOGGING ---
         function typeWriter(text, element, speed = 10) {
             let i = 0;
@@ -538,7 +683,6 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // --- CONFIG UPDATER HANDLER (NEW) ---
         function updateIspBlock(ispKey, value) {
             const parts = value.split('/');
             if (parts.length !== 2) {
@@ -558,7 +702,6 @@
             
             state[ispKey].block = ip;
             state[ispKey].cidr = cidr;
-            // Also update any dependent state if necessary, but zones check dynamically
             addLog(state[ispKey].name, `Block updated: ${ip}/${cidr}`, "success");
             render();
         }
@@ -686,6 +829,7 @@
                 const z = state.zones.find(x => x.id === state.selectedZoneId);
                 state.inputIp = z.config.ip;
                 state.inputCidr = z.config.cidr || 24;
+                state.inputMask = cidrToMask(state.inputCidr);
             }
             scrambleText(document.getElementById('main-header'), 'NetSim Pro');
             render();
@@ -769,29 +913,53 @@
                              ${isCfg ? '<div class="absolute top-0 right-0 p-2"><i data-lucide="check-circle" class="text-green-500 neon-green"></i></div>' : ''}
                             <h3 class="font-bold text-sm mb-3 text-cyan-400 font-cyber tracking-wider">iBGP Configuration</h3>
                             
-                            <div class="mb-3">
-                                <label class="block text-xs text-slate-400 mb-1">Router ID (Loopback IP)</label>
-                                <input id="inp-rid-${ispKey}" type="text" 
-                                    class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
-                                    placeholder="e.g., 10.10.1.1" 
-                                    value="${data.routerId}"
-                                    ${isCfg ? 'disabled' : ''}
-                                    onchange="state['${ispKey}'].routerId = this.value">
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">Router ID</label>
+                                    <input id="inp-rid-${ispKey}" type="text" 
+                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        placeholder="e.g., 10.10.1.1" 
+                                        value="${data.routerId}"
+                                        ${isCfg ? 'disabled' : ''}
+                                        onchange="state['${ispKey}'].routerId = this.value">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">Local Pref <button onclick="showConcept('local_pref')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
+                                    <input id="inp-pref-${ispKey}" type="number" 
+                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        value="${data.localPref}"
+                                        onchange="state['${ispKey}'].localPref = parseInt(this.value)">
+                                </div>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="block text-xs text-slate-400 mb-1">LOCAL_PREF <button onclick="showConcept('local_pref')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
-                                <input id="inp-pref-${ispKey}" type="number" 
-                                    class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
-                                    value="${data.localPref}"
-                                    onchange="state['${ispKey}'].localPref = parseInt(this.value)">
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">Keepalive (sec)</label>
+                                    <input type="number" 
+                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        value="${data.keepalive}"
+                                        onchange="state['${ispKey}'].keepalive = parseInt(this.value)">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">Hold Time (sec)</label>
+                                    <input type="number" 
+                                        class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                        value="${data.holdtime}"
+                                        onchange="state['${ispKey}'].holdtime = parseInt(this.value)">
+                                </div>
                             </div>
 
                             <button onclick="handleConfigIBGP('${ispKey}')" 
-                                class="w-full py-2 rounded font-bold text-sm transition-all relative overflow-hidden group
+                                class="w-full py-2 rounded font-bold text-sm transition-all relative overflow-hidden group mb-4
                                 ${isCfg ? 'bg-green-600 text-white cursor-default' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/50'}">
                                 <span class="relative z-10">${isCfg ? 'System Online' : 'Initialize Daemon'}</span>
                             </button>
+
+                             <!-- IOS PREVIEW -->
+                             <div class="bg-black/40 border border-slate-800 rounded p-2 font-mono text-[10px] text-slate-400 overflow-x-auto">
+                                <div class="text-cyan-600 mb-1 select-none"># LIVE ROUTE CONFIG</div>
+                                <pre>${generateIOSConfig(ispKey)}</pre>
+                             </div>
                         </div>
                     </div>
                 `;
@@ -828,7 +996,7 @@
             }
             else if (tab === 'zones') {
                 const zList = state.zones.map(z => `
-                    <div onclick="state.selectedZoneId=${z.id}; state.inputIp='${z.config.ip}'; state.inputCidr=${z.config.cidr||24}; render();" 
+                    <div onclick="state.selectedZoneId=${z.id}; state.inputIp='${z.config.ip}'; state.inputCidr=${z.config.cidr||24}; state.inputMask=cidrToMask(state.inputCidr); render();" 
                          class="cursor-pointer p-2 rounded mb-1 border flex justify-between items-center text-xs transition-all duration-200
                          ${state.selectedZoneId === z.id ? 'bg-cyan-900/40 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'bg-slate-800/50 border-transparent hover:bg-slate-700/50'}">
                         <span class="font-bold font-mono ${z.status === 'online' ? 'text-green-400 neon-green' : 'text-slate-300'}">${z.name}</span>
@@ -863,17 +1031,29 @@
 
                             <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
                                 <div>
-                                    <label class="block text-xs text-slate-400 mb-1">Network Address</label>
+                                    <label class="block text-xs text-slate-400 mb-1">Network Address (Auto-detects /CIDR on paste)</label>
                                     <input type="text" class="w-full cyber-input rounded p-2 font-mono text-white text-sm outline-none" 
-                                        value="${state.inputIp}" oninput="state.inputIp = this.value">
+                                        value="${state.inputIp}" oninput="handleIpInput(this.value)">
                                 </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                     <div>
+                                        <label class="block text-xs text-slate-400 mb-1">Subnet Mask</label>
+                                        <input type="text" class="w-full cyber-input rounded p-2 font-mono text-white text-sm outline-none" 
+                                            value="${state.inputMask}" onchange="updateZoneMask(this.value)">
+                                     </div>
+                                     <div>
+                                        <label class="block text-xs text-slate-400 mb-1 text-right">CIDR /${state.inputCidr}</label>
+                                        <input type="range" min="8" max="30" value="${state.inputCidr}" class="w-full accent-cyan-500" 
+                                        oninput="updateZoneCidr(this.value)">
+                                     </div>
+                                </div>
+
                                 <div>
                                     <label class="block text-xs text-slate-400 mb-1 flex justify-between">
-                                        <span>CIDR /${state.inputCidr}</span>
+                                        <span>Efficiency Analysis</span>
                                         <span class="${wastePercent > 50 ? 'text-red-400' : 'text-green-400'}">Waste: ${wastePercent.toFixed(1)}%</span>
                                     </label>
-                                    <input type="range" min="8" max="30" value="${state.inputCidr}" class="w-full accent-cyan-500" 
-                                        oninput="state.inputCidr = this.value; renderContent();">
                                     
                                     <!-- Visual Efficiency Bar -->
                                     <div class="h-2 w-full bg-slate-800 rounded mt-2 overflow-hidden flex">
@@ -1038,7 +1218,7 @@
                 nodesHtml += `
                     <div style="left: ${slot.x}%; top: ${slot.y}%; transform: translate(-50%, -50%);" 
                          class="absolute w-10 h-10 md:w-12 md:h-12 rounded bg-slate-900 border-2 ${isOnline ? (zone.ispId==='A'?'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]':'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]') : (isSelected ? 'border-cyan-500' : 'border-slate-700')} flex items-center justify-center z-20 pointer-events-auto cursor-pointer hover:scale-110 transition-transform"
-                         onclick="state.selectedZoneId=${zone.id}; state.inputIp='${zone.config.ip}'; state.inputCidr=${zone.config.cidr||24}; switchTab('zones');">
+                         onclick="state.selectedZoneId=${zone.id}; state.inputIp='${zone.config.ip}'; state.inputCidr=${zone.config.cidr||24}; state.inputMask=cidrToMask(state.inputCidr); switchTab('zones');">
                         <i data-lucide="home" class="w-5 h-5 ${isOnline ? 'text-white' : 'text-slate-500'}"></i>
                         <div class="absolute -bottom-6 text-[9px] w-24 text-center text-slate-400 font-mono bg-black/60 rounded px-1">${zone.name}</div>
                     </div>
