@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGP Policy City | Network Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #06b6d4;
+            --secondary: #10b981;
+            --bg-dark: #050b14;
+            --hud-bg: rgba(11, 17, 26, 0.9);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #111827 0%, #050b14 100%);
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+        .font-tech { font-family: 'Rajdhani', sans-serif; }
+        
+        /* --- CUSTOM SCROLLBAR --- */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+
+        /* --- HUD & SHAPES --- */
+        /* Angled corner for HUD elements */
+        .hud-panel-left {
+            background: var(--hud-bg);
+            clip-path: polygon(0 0, 100% 0, 100% 75%, 92% 100%, 0 100%);
+            border-left: 3px solid;
+            backdrop-filter: blur(8px);
+        }
+        .hud-panel-right {
+            background: var(--hud-bg);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 8% 100%, 0 75%);
+            border-right: 3px solid #06b6d4;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Glass panel for modals/popups remains */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        /* --- HEX GRID BACKGROUND --- */
+        .hex-bg {
+            background-color: transparent;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%2306b6d4' fill-opacity='0.05' fill-rule='nonzero'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            animation: moveHex 60s linear infinite;
+        }
+        @keyframes moveHex {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 -100px; }
+        }
+
+        /* --- GLITCH EFFECT --- */
+        .glitch-text { position: relative; color: white; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .glitch-text::before {
+            left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px; text-shadow: -1px 0 #00fff9; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(12px, 9999px, 86px, 0); } 5% { clip: rect(34px, 9999px, 12px, 0); }
+            10% { clip: rect(6px, 9999px, 55px, 0); } 100% { clip: rect(12px, 9999px, 86px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(82px, 9999px, 12px, 0); } 5% { clip: rect(12px, 9999px, 3px, 0); }
+            10% { clip: rect(55px, 9999px, 76px, 0); } 100% { clip: rect(82px, 9999px, 12px, 0); }
+        }
+
+        /* --- SCANLINE & CRT EFFECTS --- */
+        .crt-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 50;
+        }
+        .scanline {
+            width: 100%; height: 2px; z-index: 51; background: rgba(6, 182, 212, 0.1);
+            opacity: 0.75; position: absolute; bottom: 100%; animation: scanline 8s linear infinite;
+            pointer-events: none; box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+        @keyframes scanline { 0% { bottom: 100%; } 100% { bottom: -10px; } }
+
+        /* --- ANIMATIONS --- */
+        @keyframes dash-flow { to { stroke-dashoffset: -20; } }
+        .animate-dash-slow { animation: dash-flow 2s linear infinite; }
+        
+        @keyframes draw-in { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+        .draw-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-in 2s ease-out forwards; }
+
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+        .animate-spin-slow { transform-origin: center; animation: spin-slow 10s linear infinite; }
+        .animate-spin-reverse { transform-origin: center; animation: spin-reverse 8s linear infinite; }
+
+        .fade-enter { opacity: 0; transform: translateY(10px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 300ms, transform 300ms; }
+        
+        .cyber-input { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; transition: all 0.3s ease; }
+        .cyber-input:focus { border-color: #06b6d4; box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); background: rgba(6, 182, 212, 0.05); }
+
+        .neon-green { text-shadow: 0 0 5px rgba(34, 197, 94, 0.8); }
+        .neon-cyan { text-shadow: 0 0 8px rgba(6, 182, 212, 0.8); }
+        
+        .typing-cursor::after {
+            content: '▋'; display: inline-block; animation: blink 1s infinite;
+            color: #06b6d4; margin-left: 2px;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* HEADER GRID */
+        .header-grid {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* TAB STYLES */
+        .nav-tab {
+            position: relative;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+        .nav-tab:hover {
+            opacity: 1;
+            background: linear-gradient(to top, rgba(6, 182, 212, 0.1), transparent);
+        }
+        .nav-tab.active {
+            opacity: 1;
+            color: white;
+            background: linear-gradient(to top, rgba(6, 182, 212, 0.15), transparent);
+        }
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #06b6d4;
+            box-shadow: 0 0 10px #06b6d4;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen w-screen text-slate-100 overflow-hidden">
+
+    <!-- CRT Visual Effects -->
+    <div class="crt-overlay"></div>
+    <div class="scanline"></div>
+
+    <!-- KNOWLEDGE MODAL (Hidden by default) -->
+    <div id="knowledge-modal" class="modal-overlay fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl rounded-lg p-6 border-l-4 border-l-cyan-500 relative overflow-hidden">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
+            <div class="absolute -right-10 -top-10 text-9xl text-cyan-500/5 font-cyber pointer-events-none">DATA</div>
+            
+            <h2 id="modal-title" class="text-2xl font-bold font-cyber text-cyan-400 mb-2 neon-cyan">Term Decrypted</h2>
+            <div class="h-1 w-20 bg-cyan-500 mb-4"></div>
+            
+            <div id="modal-content" class="text-slate-300 font-mono text-sm leading-relaxed space-y-4">
+                <!-- Content injected via JS -->
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center">
+                <div class="text-[10px] text-slate-500 font-mono">SOURCE: CORTEX DATABASE_V9.2</div>
+                <button onclick="closeModal()" class="px-4 py-2 bg-cyan-900/50 hover:bg-cyan-800 text-cyan-300 border border-cyan-700 rounded text-xs font-bold tracking-wider">ACKNOWLEDGE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEFT PANEL: VISUAL MAP -->
+    <div class="relative flex-1 bg-black/40 border-r border-slate-800 h-1/2 md:h-full perspective-1000">
+        <div class="absolute inset-0 z-0 opacity-20 hex-bg pointer-events-none"></div>
+        <canvas id="bg-canvas" class="absolute inset-0 z-0 opacity-30"></canvas>
+        
+        <!-- NEW HUD STATUS BAR -->
+        <div class="absolute top-6 left-6 right-6 z-20 flex justify-between pointer-events-none select-none">
+            <!-- Left HUD: System Status -->
+            <div class="flex flex-col items-start group">
+                <div class="text-[10px] text-cyan-600 font-mono tracking-[0.2em] mb-1 pl-1 opacity-70">SYSTEM_STATUS //</div>
+                <div class="hud-panel-left border-red-500 pl-4 pr-6 py-2 transition-colors duration-500 flex items-center gap-3 shadow-lg" id="status-panel">
+                     <div class="flex items-center justify-center w-3 h-3">
+                        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_red]" id="status-light"></div>
+                     </div>
+                     <div class="flex flex-col">
+                         <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-none">OPERATIONAL STATE</span>
+                         <span class="text-sm font-bold text-red-400 font-tech tracking-widest scramble-target leading-tight mt-0.5" id="status-text">OFFLINE</span>
+                     </div>
+                </div>
+            </div>
+
+            <!-- Right HUD: Policy Metrics -->
+            <div class="hidden md:flex flex-col items-end">
+                <div class="text-[10px] text-cyan-600 font-mono tracking-[0.2em] mb-1 pr-1 opacity-70">// POLICY_METRICS</div>
+                <div class="hud-panel-right pl-6 pr-4 py-2 shadow-lg flex items-center gap-4">
+                     <div class="text-right">
+                         <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">ISP A PREFERENCE</div>
+                         <div class="text-cyan-400 font-mono font-bold leading-none" id="pref-a-display">100</div>
+                     </div>
+                     <div class="h-6 w-px bg-slate-700"></div>
+                     <div class="text-right">
+                         <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">ISP B PREFERENCE</div>
+                         <div class="text-cyan-400 font-mono font-bold leading-none" id="pref-b-display">100</div>
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <svg id="network-map" class="absolute inset-0 w-full h-full z-10 pointer-events-none filter drop-shadow-[0_0_5px_rgba(6,182,212,0.3)]"></svg>
+        <div id="map-nodes" class="absolute inset-0 z-20 pointer-events-none"></div>
+    </div>
+
+    <!-- RIGHT PANEL: CONTROLS -->
+    <div class="w-full md:w-[500px] bg-slate-900/95 backdrop-blur-xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.8)] z-30 h-1/2 md:h-full border-t md:border-t-0 md:border-l border-slate-700">
+        
+        <!-- NEW COMMAND HEADER -->
+        <div class="relative shrink-0 bg-slate-900 border-b border-white/10 header-grid">
+            <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-transparent"></div>
+            
+            <div class="p-5 flex justify-between items-center relative z-10">
+                <div class="flex items-center gap-4">
+                    <div class="relative group cursor-help" title="System ID: NS-9000">
+                        <div class="absolute inset-0 bg-cyan-400 blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                        <div class="bg-slate-800 border border-slate-600 p-2 rounded shadow-inner relative">
+                            <i data-lucide="globe" class="text-cyan-400 w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold text-white tracking-tighter font-cyber glitch-text leading-none" id="main-header" data-text="NetSim Pro">NetSim <span class="text-cyan-400">Pro</span></h1>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                            <span class="text-[10px] text-green-500 font-mono tracking-widest uppercase opacity-80">CORTEX ENGINE ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-end">
+                    <div class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mb-0.5">Efficiency Score</div>
+                    <div class="text-2xl font-tech font-bold text-green-400 neon-green tabular-nums" id="score-display">0%</div>
+                </div>
+            </div>
+
+            <!-- NEW TAB NAVIGATION RAIL -->
+            <div class="flex border-t border-white/5 bg-black/40 backdrop-blur-sm">
+                <button onclick="switchTab('A')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-A">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 tracking-wider">ISP A</span>
+                    <div class="w-1 h-1 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></div>
+                </button>
+                <button onclick="switchTab('B')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-B">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 tracking-wider">ISP B</span>
+                    <div class="w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_5px_#3b82f6]"></div>
+                </button>
+                <div class="w-px bg-white/10 my-2"></div>
+                <button onclick="switchTab('eBGP')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-eBGP">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-yellow-300 tracking-wider">eBGP</span>
+                    <i data-lucide="zap" class="w-3 h-3 text-yellow-500"></i>
+                </button>
+                <button onclick="switchTab('zones')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-zones">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 tracking-wider">ZONES</span>
+                    <i data-lucide="layout-grid" class="w-3 h-3 text-cyan-500"></i>
+                </button>
+                <button onclick="switchTab('calc')" class="nav-tab flex-1 py-3 px-2 flex flex-col items-center justify-center gap-1 group" id="tab-calc">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-purple-300 tracking-wider">CALC</span>
+                    <i data-lucide="binary" class="w-3 h-3 text-purple-500"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-5 relative custom-scrollbar bg-slate-900/50">
+            <div id="advisor-container" class="mb-4 md:mb-6"></div>
+            <div id="content-area"></div>
+        </div>
+
+        <!-- Terminal Log / Footer -->
+        <div class="h-32 md:h-40 bg-black border-t border-slate-700 p-3 font-mono text-[11px] md:text-xs overflow-y-auto shrink-0 custom-scrollbar shadow-inner" id="console-log">
+            <div class="text-green-500 opacity-80 typing-line">cortex > systems online. database mounted.</div>
+            <div class="text-slate-400 opacity-80 typing-line">cortex > awaiting manual input...</div>
+            <div id="typing-anchor"></div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- KNOWLEDGE BASE (CORTEX) ---
+        const knowledgeDb = {
+            'as_number': {
+                title: 'Autonomous System (AS) Number',
+                content: `
+                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "AS numbers are just random IDs."</p>
+                    <p class="mb-2">An AS number is a globally unique identifier defining a group of IP prefixes run by one operator. It is the fundamental unit of the internet's routing trust model.</p>
+                    <ul class="list-disc pl-4 space-y-1 text-slate-400">
+                        <li><strong class="text-cyan-400">1 - 64,511:</strong> Public Internet AS (Routable).</li>
+                        <li><strong class="text-orange-400">64,512 - 65,534:</strong> Private Use (Internal only, like private IPs).</li>
+                    </ul>
+                `
+            },
+            'local_pref': {
+                title: 'LOCAL_PREF (Local Preference)',
+                content: `
+                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "LOCAL_PREF influences how others route to me."</p>
+                    <p class="mb-2">Wrong. LOCAL_PREF is an <em>outbound</em> policy attribute. It tells routers inside <em>your</em> AS which exit door to prefer when sending traffic out to the internet.</p>
+                    <p>It never leaves your AS. The default value is 100. Higher is always preferred.</p>
+                `
+            },
+            'ebgp_subnet': {
+                title: 'eBGP Peering Subnets',
+                content: `
+                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "I can use a /24 for a point-to-point link."</p>
+                    <p class="mb-2">While technically possible, using a /24 (254 hosts) for a link with only 2 routers is wasteful and dangerous. It creates a large broadcast domain vulnerable to ARP spoofing.</p>
+                    <p><strong class="text-green-400">Best Practice:</strong> Use a <strong>/30</strong> (4 IPs, 2 usable) or a <strong>/31</strong> (2 IPs, 2 usable) to minimize attack surface and address waste.</p>
+                `
+            },
+            'vlsm': {
+                title: 'VLSM (Variable Length Subnet Mask)',
+                content: `
+                    <p class="mb-2"><strong class="text-white">Misconception:</strong> "Subnet masks must be the same size everywhere."</p>
+                    <p class="mb-2">VLSM allows you to "subnet a subnet." You can have a large /24 for WiFi clients and a tiny /30 for a router link within the same network block.</p>
+                    <p>This efficiency is critical. IPv4 addresses are exhausted; wasting them is poor engineering.</p>
+                `
+            }
+        };
+
+        function showConcept(key) {
+            const data = knowledgeDb[key];
+            if(!data) return;
+            document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('modal-content').innerHTML = data.content;
+            document.getElementById('knowledge-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('knowledge-modal').classList.add('hidden');
+        }
+
+        // --- ANIMATION UTILS ---
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&';
+        function scrambleText(element, finalString) {
+            let iterations = 0;
+            const interval = setInterval(() => {
+                element.innerText = finalString.split('').map((letter, index) => {
+                    return index < iterations ? finalString[index] : chars[Math.floor(Math.random() * chars.length)];
+                }).join('');
+                if (iterations >= finalString.length) clearInterval(interval);
+                iterations += 1 / 3;
+            }, 30);
+        }
+
+        // --- BACKGROUND CANVAS ANIMATION ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
+
+        function resizeCanvas() {
+            width = canvas.width = canvas.parentElement.offsetWidth;
+            height = canvas.height = canvas.parentElement.offsetHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                this.size = Math.random() * 2;
+                this.phase = Math.random() * Math.PI * 2;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.phase += 0.05;
+                if(this.x < 0 || this.x > width) this.vx *= -1;
+                if(this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                const alpha = (Math.sin(this.phase) + 1) / 2 * 0.5 + 0.1;
+                ctx.fillStyle = `rgba(6, 182, 212, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<50; i++) particles.push(new Particle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = 'rgba(6, 182, 212, 0.05)';
+            ctx.lineWidth = 1;
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i]; p.update(); p.draw();
+                for(let j=i+1; j<particles.length; j++) {
+                    let p2 = particles[j];
+                    let dist = Math.sqrt((p.x-p2.x)**2 + (p.y-p2.y)**2);
+                    if(dist < 120) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+
+        // --- APP LOGIC ---
+        const possibleClasses = ['A', 'B', 'C'];
+        const BGP_PEERING_RANGE_IP = '192.168.0.0';
+        const BGP_PEERING_CIDR = 16;
+        
+        const initialIspA = { name: 'ISP A', block: '10.0.0.0', cidr: 8, as: 65001, color: 'green' };
+        const initialIspB = { name: 'ISP B', block: '172.16.0.0', cidr: 12, as: 65002, color: 'blue' };
+
+        let state = {
+            score: 0,
+            efficiency: 0,
+            activeTab: 'A',
+            ispA: { ...initialIspA, routerId: '', iBGPStatus: 'pending', localPref: 100, message: '' },
+            ispB: { ...initialIspB, routerId: '', iBGPStatus: 'pending', localPref: 100, message: '' },
+            peering: { ip: '', cidr: 30, remoteAs: initialIspB.as, status: 'pending', message: '', realData: null },
+            zones: [],
+            selectedZoneId: null,
+            inputIp: '',
+            inputCidr: 24
+        };
+
+        function generateZones() {
+            const zones = [];
+            const positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+            for (let i = 1; i <= 30; i++) {
+                const ispId = i <= 15 ? 'A' : 'B';
+                zones.push({
+                    id: i,
+                    name: `Sector ${String(i).padStart(2, '0')}`,
+                    hostsRequired: Math.floor(Math.random() * 241) + 10,
+                    reqClass: possibleClasses[Math.floor(Math.random() * possibleClasses.length)],
+                    ispId: ispId,
+                    position: positions[i % 4],
+                    status: 'offline', 
+                    config: { ip: '', cidr: 24 },
+                    houseIps: [],
+                    message: "Awaiting Uplink"
+                });
+            }
+            return zones;
+        }
+        state.zones = generateZones();
+        state.selectedZoneId = state.zones[0].id;
+
+        // --- IP LOGIC ---
+        const ipToLong = (ip) => {
+            if(!ip) return null;
+            const parts = ip.split('.');
+            if (parts.length !== 4 || parts.some(p => isNaN(parseInt(p)))) return null;
+            return ((parseInt(parts[0], 10) << 24) | (parseInt(parts[1], 10) << 16) | (parseInt(parts[2], 10) << 8) | parseInt(parts[3], 10)) >>> 0;
+        };
+
+        const longToIp = (long) => [(long >>> 24) & 0xFF, (long >>> 16) & 0xFF, (long >>> 8) & 0xFF, long & 0xFF].join('.');
+
+        const isIpInSubnet = (ipLong, networkLong, cidr) => {
+            const mask = ~((1 << (32 - cidr)) - 1);
+            return (ipLong & mask) === (networkLong & mask);
+        };
+
+        const calculateSubnet = (ip, cidr) => {
+            const ipLong = ipToLong(ip);
+            if (ipLong === null || cidr < 1 || cidr > 32) return null;
+            const mask = ~((1 << (32 - cidr)) - 1);
+            const networkLong = (ipLong & mask) >>> 0;
+            const broadcastLong = (networkLong | ~mask) >>> 0;
+            const usableStart = (networkLong + 1) >>> 0;
+            const usableEnd = (broadcastLong - 1) >>> 0;
+            const hosts = Math.max(0, usableEnd > usableStart ? usableEnd - usableStart + 1 : 0);
+            
+            const houseIps = [];
+            for(let i=0; i<Math.min(hosts, 20); i++) houseIps.push(longToIp(usableStart + i));
+
+            return { networkAddress: longToIp(networkLong), broadcastAddress: longToIp(broadcastLong), firstHost: longToIp(usableStart), lastHost: longToIp(usableEnd), totalHosts: hosts, houseIps };
+        };
+
+        const octetToBinary = (octet) => parseInt(octet, 10).toString(2).padStart(8, '0');
+        const ipToBinary = (ip) => {
+            const parts = ip.split('.');
+            if (parts.length !== 4) return 'Invalid IP';
+            return parts.map(octetToBinary).join('.');
+        }
+
+        // --- LOGGING ---
+        function typeWriter(text, element, speed = 10) {
+            let i = 0;
+            element.classList.add('typing-cursor');
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i); i++; setTimeout(type, speed);
+                } else {
+                    element.classList.remove('typing-cursor');
+                }
+            }
+            type();
+        }
+
+        function addLog(source, message, type = 'info') {
+            const logContainer = document.getElementById('console-log');
+            const anchor = document.getElementById('typing-anchor');
+            const entry = document.createElement('div');
+            entry.className = `mb-1 ${type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-slate-400'}`;
+            const timestamp = new Date().toLocaleTimeString('en-US', {hour12: false});
+            logContainer.insertBefore(entry, anchor);
+            typeWriter(`[${timestamp}] ${source} > ${message}`, entry, 5);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // --- HANDLERS ---
+        function handleConfigIBGP(ispKey) {
+            const cfg = state[ispKey];
+            const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+
+            if (!ipRegex.test(cfg.routerId)) {
+                cfg.iBGPStatus = 'error';
+                cfg.message = "Diagnostic: Router ID must be a valid 32-bit IP address to uniquely identify the BGP node.";
+                addLog(cfg.name, "ERR: Invalid Router ID", "error");
+            } else if (!cfg.as || cfg.as < 1) {
+                cfg.iBGPStatus = 'error';
+                cfg.message = "Diagnostic: AS Number is required for BGP Process initialization.";
+                addLog(cfg.name, "ERR: Invalid AS", "error");
+            } else {
+                cfg.iBGPStatus = 'configured';
+                cfg.message = `Analysis: iBGP Mesh Stable. Local Preference set to ${cfg.localPref} to influence outbound paths.`;
+                state.score += 5;
+                addLog(cfg.name, `iBGP Mesh Online. Policy Active.`, "success");
+            }
+            render();
+        }
+
+        function handleConfigEBGP() {
+            const p = state.peering;
+
+            if (state.ispA.iBGPStatus !== 'configured' || state.ispB.iBGPStatus !== 'configured') {
+                p.status = 'error';
+                p.message = "Diagnostic: Cannot establish External BGP (eBGP) until Internal BGP (iBGP) stability is confirmed.";
+                addLog("eBGP", "ERR: Local AS iBGP Down", "error");
+                render();
+                return;
+            }
+
+            const subnet = calculateSubnet(p.ip, p.cidr);
+            const parentBlock = ipToLong(BGP_PEERING_RANGE_IP);
+            
+            if (!subnet || p.cidr !== 30 || !isIpInSubnet(ipToLong(p.ip), parentBlock, BGP_PEERING_CIDR)) {
+                p.status = 'error';
+                p.message = "Protocol Mismatch: Point-to-Point links strictly require a /30 subnet (2 usable hosts) to conserve Global IP space.";
+                addLog("eBGP", "ERR: Invalid Subnet (Requires /30)", "error");
+            } else if (parseInt(p.remoteAs) !== state.ispB.as) {
+                p.status = 'error';
+                p.message = `Security Alert: Remote AS mismatch. Expected AS${state.ispB.as} but configuration specifies AS${p.remoteAs}.`;
+                addLog("eBGP", "ERR: AS Mismatch", "error");
+            } else {
+                p.status = 'configured';
+                p.message = "Link Established. Route Tables Exchanged.";
+                p.realData = subnet;
+                state.score += 15;
+                addLog("eBGP", "PEERING ESTABLISHED [OK]", "success");
+            }
+            render();
+        }
+
+        function handleZoneConnect() {
+            const zone = state.zones.find(z => z.id === state.selectedZoneId);
+            if (!zone) return;
+
+            const ispData = zone.ispId === 'A' ? state.ispA : state.ispB;
+            const inputIp = state.inputIp;
+            const inputCidr = parseInt(state.inputCidr);
+
+            if (state.peering.status !== 'configured') {
+                zone.status = 'error';
+                zone.message = "Network Failure: Uplink to Global Routing Table is down.";
+                addLog("ZONE", `Connection failed: Global BGP Down`, "error");
+                render();
+                return;
+            }
+
+            const sub = calculateSubnet(inputIp, inputCidr);
+            if (!sub) {
+                zone.status = 'error';
+                zone.message = "Syntax Error: Invalid IP/CIDR combination.";
+                render(); return;
+            }
+
+            const ipL = ipToLong(inputIp);
+            const ispL = ipToLong(ispData.block);
+            if (!isIpInSubnet(ipL, ispL, ispData.cidr)) {
+                zone.status = 'error';
+                zone.message = `Policy Violation: Advertised IP is outside of owned AS Block (${ispData.block}/${ispData.cidr}).`;
+                addLog("ZONE", `Route Rejected: Outside AS Block`, "error");
+                render(); return;
+            }
+
+            if (sub.networkAddress !== inputIp) {
+                zone.status = 'error';
+                zone.message = `Configuration Error: Entry is not a Network ID. Suggestion: ${sub.networkAddress}`;
+                render(); return;
+            }
+
+            if (sub.totalHosts < zone.hostsRequired) {
+                zone.status = 'error';
+                zone.message = `Capacity Warning: Subnet /${inputCidr} (${sub.totalHosts} hosts) cannot support required ${zone.hostsRequired} nodes.`;
+                render(); return;
+            }
+
+            // Update efficiency score
+            const waste = sub.totalHosts - zone.hostsRequired;
+            const efficiency = Math.max(0, 100 - (waste / sub.totalHosts * 100));
+            
+            if (zone.status !== 'online') {
+                state.score += Math.floor(efficiency);
+            }
+            
+            zone.status = 'online';
+            zone.message = `Route Advertised. Efficiency: ${efficiency.toFixed(1)}%`;
+            zone.houseIps = sub.houseIps;
+            zone.config = { ip: inputIp, cidr: inputCidr };
+            
+            addLog("ZONE", `${zone.name} ONLINE. Eff: ${efficiency.toFixed(1)}%`, "success");
+            render();
+        }
+
+        // --- RENDERERS ---
+
+        function switchTab(tab) {
+            state.activeTab = tab;
+            if (tab === 'zones' && state.selectedZoneId) {
+                const z = state.zones.find(x => x.id === state.selectedZoneId);
+                state.inputIp = z.config.ip;
+                state.inputCidr = z.config.cidr || 24;
+            }
+            scrambleText(document.getElementById('main-header'), 'NetSim Pro');
+            render();
+        }
+
+        function renderAdvisor() {
+            const container = document.getElementById('advisor-container');
+            const t = state.activeTab;
+            let title = "", text = "", type = "info";
+
+            if (t === 'A' || t === 'B') {
+                const isp = t === 'A' ? state.ispA : state.ispB;
+                if(isp.iBGPStatus === 'error') {
+                    title = "Configuration Alert";
+                    text = isp.message;
+                    type = "error";
+                } else {
+                    title = "AS Policy Protocol";
+                    text = "Configure iBGP to synchronize routes internally. The Router ID is a Loopback IP ensuring stability. LOCAL_PREF allows you to dictate outbound traffic flow (higher = better).";
+                    type = "info";
+                }
+            } else if (t === 'eBGP') {
+                if(state.peering.status === 'error') {
+                     title = "Peering Protocol Failure";
+                     text = state.peering.message;
+                     type = "error";
+                } else {
+                    title = "Inter-AS Link Specification";
+                    text = "Establishing a physical link requires a subnet from the agreed range (192.168.0.0/16). Standard practice dictates a /30 to conserve address space.";
+                    type = "warning";
+                }
+            } else if (t === 'zones') {
+                 title = "VLSM Allocation Strategy";
+                 text = "Variable Length Subnet Masking (VLSM) allows efficient use of IP space. Select a subnet mask that accommodates the host requirement with minimal waste.";
+                 type = "success";
+            } else {
+                 title = "Binary Matrix Decoder";
+                 text = "Visualizing the subnet mask in binary helps understand where the Network portion ends and the Host portion begins.";
+            }
+
+            const borderColor = type === 'info' ? 'border-cyan-500' : type === 'warning' ? 'border-yellow-500' : type === 'error' ? 'border-red-500' : 'border-green-500';
+            const icon = type === 'error' ? 'alert-triangle' : 'info';
+            
+            container.innerHTML = `
+                <div class="glass-panel border-l-4 ${borderColor} p-3 rounded-r text-sm fade-enter-active">
+                    <div class="font-bold mb-1 flex items-center gap-2 text-white font-cyber"><i data-lucide="${icon}" size="14"></i> ${title}</div>
+                    <div class="text-slate-300 text-xs">${text}</div>
+                </div>
+            `;
+        }
+
+        function renderContent() {
+            const container = document.getElementById('content-area');
+            const tab = state.activeTab;
+
+            if (tab === 'A' || tab === 'B') {
+                const ispKey = tab === 'A' ? 'ispA' : 'ispB';
+                const data = state[ispKey];
+                const isCfg = data.iBGPStatus === 'configured';
+                
+                container.innerHTML = `
+                    <div class="space-y-4 fade-enter-active">
+                        <div class="p-4 border border-slate-700/50 rounded-lg bg-black/20 flex justify-between items-center">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1 font-cyber">Autonomous System (AS) <button onclick="showConcept('as_number')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
+                                <input type="number" class="bg-transparent font-mono text-white text-lg w-32" value="${data.as}" disabled>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] text-slate-500 font-mono">ASSIGNED BLOCK</div>
+                                <div class="text-green-400 font-mono">${data.block}/${data.cidr}</div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 border ${isCfg ? 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'border-slate-700'} rounded-lg glass-panel relative overflow-hidden transition-all duration-300">
+                             ${isCfg ? '<div class="absolute top-0 right-0 p-2"><i data-lucide="check-circle" class="text-green-500 neon-green"></i></div>' : ''}
+                            <h3 class="font-bold text-sm mb-3 text-cyan-400 font-cyber tracking-wider">iBGP Configuration</h3>
+                            
+                            <div class="mb-3">
+                                <label class="block text-xs text-slate-400 mb-1">Router ID (Loopback IP)</label>
+                                <input id="inp-rid-${ispKey}" type="text" 
+                                    class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                    placeholder="e.g., 10.10.1.1" 
+                                    value="${data.routerId}"
+                                    ${isCfg ? 'disabled' : ''}
+                                    onchange="state['${ispKey}'].routerId = this.value">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="block text-xs text-slate-400 mb-1">LOCAL_PREF <button onclick="showConcept('local_pref')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
+                                <input id="inp-pref-${ispKey}" type="number" 
+                                    class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                    value="${data.localPref}"
+                                    onchange="state['${ispKey}'].localPref = parseInt(this.value)">
+                            </div>
+
+                            <button onclick="handleConfigIBGP('${ispKey}')" 
+                                class="w-full py-2 rounded font-bold text-sm transition-all relative overflow-hidden group
+                                ${isCfg ? 'bg-green-600 text-white cursor-default' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/50'}">
+                                <span class="relative z-10">${isCfg ? 'System Online' : 'Initialize Daemon'}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (tab === 'eBGP') {
+                const p = state.peering;
+                const isCfg = p.status === 'configured';
+
+                container.innerHTML = `
+                    <div class="space-y-4 fade-enter-active">
+                        <div class="p-4 border ${isCfg ? 'border-green-500' : 'border-yellow-500/50'} rounded-lg glass-panel relative">
+                             <div class="absolute -top-3 left-4 bg-slate-900 px-2 text-xs font-bold text-yellow-500 border border-yellow-600 rounded font-cyber">CORE LINK</div>
+                             
+                             <div class="mt-2 mb-3">
+                                <label class="block text-xs text-slate-400 mb-1">Peering Network IP (/30 recommended) <button onclick="showConcept('ebgp_subnet')" class="text-cyan-400 hover:text-white ml-1">[?]</button></label>
+                                <input type="text" class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                    placeholder="192.168.x.x" value="${p.ip}" ${isCfg ? 'disabled' : ''} onchange="state.peering.ip = this.value">
+                             </div>
+
+                             <div class="mb-4">
+                                <label class="block text-xs text-slate-400 mb-1">Remote AS Number</label>
+                                <input type="number" class="w-full cyber-input rounded p-2 font-mono text-white outline-none" 
+                                    value="${p.remoteAs}" ${isCfg ? 'disabled' : ''} onchange="state.peering.remoteAs = this.value">
+                             </div>
+
+                             <button onclick="handleConfigEBGP()" 
+                                class="w-full py-2 rounded font-bold text-sm transition-all relative overflow-hidden group
+                                ${isCfg ? 'bg-green-600 text-white' : 'bg-yellow-600 hover:bg-yellow-500 text-white shadow-lg shadow-yellow-900/50'}">
+                                <span class="relative z-10">${isCfg ? 'Link Established' : 'Connect Peer'}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (tab === 'zones') {
+                const zList = state.zones.map(z => `
+                    <div onclick="state.selectedZoneId=${z.id}; state.inputIp='${z.config.ip}'; state.inputCidr=${z.config.cidr||24}; render();" 
+                         class="cursor-pointer p-2 rounded mb-1 border flex justify-between items-center text-xs transition-all duration-200
+                         ${state.selectedZoneId === z.id ? 'bg-cyan-900/40 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'bg-slate-800/50 border-transparent hover:bg-slate-700/50'}">
+                        <span class="font-bold font-mono ${z.status === 'online' ? 'text-green-400 neon-green' : 'text-slate-300'}">${z.name}</span>
+                        <span class="${z.ispId==='A'?'text-green-500':'text-blue-500'} font-mono font-bold text-[10px]">AS${z.ispId==='A'?state.ispA.as:state.ispB.as}</span>
+                    </div>
+                `).join('');
+
+                const currZ = state.zones.find(z => z.id === state.selectedZoneId);
+                const ispData = currZ.ispId === 'A' ? state.ispA : state.ispB;
+                const totalHosts = Math.pow(2, 32 - state.inputCidr) - 2;
+                const waste = Math.max(0, totalHosts - currZ.hostsRequired);
+                const wastePercent = Math.min(100, (waste / totalHosts) * 100);
+
+                container.innerHTML = `
+                    <div class="flex flex-col sm:flex-row gap-4 h-[350px] fade-enter-active">
+                        <div class="w-full sm:w-1/3 overflow-y-auto pr-2 custom-scrollbar border-b sm:border-b-0 sm:border-r border-slate-700 pb-2 sm:pb-0 h-1/3 sm:h-full">
+                            ${zList}
+                        </div>
+                        <div class="w-full sm:w-2/3 glass-panel rounded p-4 flex flex-col h-2/3 sm:h-full">
+                            <div class="flex justify-between items-start mb-4 border-b border-white/5 pb-2">
+                                <div>
+                                    <h3 class="font-bold text-white flex items-center gap-2 font-cyber">
+                                        ${currZ.name}
+                                        ${currZ.status === 'online' ? '<i data-lucide="check" class="text-green-400" size="16"></i>' : ''}
+                                    </h3>
+                                    <div class="text-xs text-slate-400">Req: <span class="text-white font-bold">${currZ.hostsRequired}</span> hosts <button onclick="showConcept('vlsm')" class="text-cyan-400 hover:text-white ml-1">[?]</button></div>
+                                </div>
+                                <div class="text-[10px] font-mono px-2 py-1 rounded bg-black/40 border border-slate-600 text-${ispData.color}-400">
+                                    Source: ${ispData.block}/${ispData.cidr}
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">Network Address</label>
+                                    <input type="text" class="w-full cyber-input rounded p-2 font-mono text-white text-sm outline-none" 
+                                        value="${state.inputIp}" oninput="state.inputIp = this.value">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1 flex justify-between">
+                                        <span>CIDR /${state.inputCidr}</span>
+                                        <span class="${wastePercent > 50 ? 'text-red-400' : 'text-green-400'}">Waste: ${wastePercent.toFixed(1)}%</span>
+                                    </label>
+                                    <input type="range" min="8" max="30" value="${state.inputCidr}" class="w-full accent-cyan-500" 
+                                        oninput="state.inputCidr = this.value; renderContent();">
+                                    
+                                    <!-- Visual Efficiency Bar -->
+                                    <div class="h-2 w-full bg-slate-800 rounded mt-2 overflow-hidden flex">
+                                        <div class="bg-green-500 h-full" style="width: ${100 - wastePercent}%"></div>
+                                        <div class="bg-red-500/50 h-full" style="width: ${wastePercent}%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[9px] text-slate-500 mt-1 font-mono">
+                                        <span>Used: ${currZ.hostsRequired}</span>
+                                        <span>Total: ${totalHosts}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-auto pt-2">
+                                    <button onclick="handleZoneConnect()" class="w-full py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded font-bold text-sm shadow-lg shadow-cyan-900/40 border border-cyan-500/30 transition-all hover:scale-[1.02]">
+                                        Advertise Route
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (tab === 'calc') {
+                container.innerHTML = `
+                    <div class="glass-panel rounded p-4 border border-slate-700 fade-enter-active">
+                        <h3 class="font-bold text-cyan-400 mb-4 flex gap-2 items-center font-cyber"><i data-lucide="calculator"></i> Binary Matrix</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input id="calc-ip" type="text" placeholder="IP Address" class="cyber-input p-2 rounded font-mono text-white flex-1 min-w-0 outline-none">
+                            <input id="calc-cidr" type="number" placeholder="24" class="cyber-input p-2 rounded font-mono text-white w-16 outline-none">
+                            <button onclick="runCalc()" class="bg-cyan-600 text-white px-4 rounded hover:bg-cyan-500 font-bold border border-cyan-400/50">Calc</button>
+                        </div>
+                        <div id="calc-results" class="text-xs font-mono space-y-2 text-slate-300">
+                            Enter values to decode binary stream.
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function runCalc() {
+            const ip = document.getElementById('calc-ip').value;
+            const cidr = parseInt(document.getElementById('calc-cidr').value);
+            const res = calculateSubnet(ip, cidr);
+            const div = document.getElementById('calc-results');
+            
+            if(!res) { div.innerHTML = "<span class='text-red-400 font-bold'>Invalid Data Stream</span>"; return; }
+
+            const binIp = ipToBinary(ip);
+            const binMask = ipToBinary(longToIp(~((1 << (32 - cidr)) - 1) >>> 0));
+
+            div.innerHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-slate-900/80 p-2 rounded border border-slate-700">Network: <span class="text-green-400 neon-green">${res.networkAddress}</span></div>
+                    <div class="bg-slate-900/80 p-2 rounded border border-slate-700">Broadcast: <span class="text-yellow-400">${res.broadcastAddress}</span></div>
+                    <div class="col-span-2 bg-black/60 p-2 rounded border border-dashed border-slate-700">
+                        <div class="text-slate-500">IP Binary:</div>
+                        <div class="break-all text-cyan-200 font-bold tracking-widest">${binIp}</div>
+                        <div class="text-slate-500 mt-1">Mask Binary:</div>
+                        <div class="text-yellow-500 break-all tracking-widest">${binMask}</div>
+                    </div>
+                    <div class="col-span-2 text-center text-cyan-400 pt-2 font-bold">Total Usable Hosts: ${res.totalHosts}</div>
+                </div>
+            `;
+        }
+
+        function renderMap() {
+            const svg = document.getElementById('network-map');
+            const nodesDiv = document.getElementById('map-nodes');
+            const width = svg.clientWidth || 800;
+            const height = svg.clientHeight || 600;
+
+            let svgContent = `<defs>
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>`;
+            
+            let nodesHtml = '';
+            const ispAPos = { x: 35, y: 50 };
+            const ispBPos = { x: 65, y: 50 };
+
+            const drawISPNode = (pos, data, key) => {
+                const isActive = data.iBGPStatus === 'configured';
+                if(isActive) {
+                     svgContent += `<circle cx="${pos.x}%" cy="${pos.y}%" r="35" stroke="${key==='ispA'?'#22c55e':'#3b82f6'}" stroke-width="1" fill="none" opacity="0.3">
+                        <animate attributeName="r" values="35;45;35" dur="3s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" repeatCount="indefinite" />
+                     </circle>`;
+                }
+                
+                nodesHtml += `
+                    <div style="left: ${pos.x}%; top: ${pos.y}%; transform: translate(-50%, -50%);" 
+                         class="absolute flex flex-col items-center pointer-events-auto cursor-pointer group" onclick="switchTab('${key==='ispA'?'A':'B'}')">
+                        <div class="w-12 h-12 md:w-16 md:h-16 rounded-full border-4 ${isActive ? (key==='ispA'?'border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.6)]':'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]') : 'border-slate-600'} 
+                             bg-slate-900 flex items-center justify-center z-10 transition-all duration-500 group-hover:scale-110 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <i data-lucide="server" class="${isActive ? (key==='ispA'?'text-green-400':'text-blue-400') : 'text-slate-500'}"></i>
+                        </div>
+                        <div class="mt-3 bg-black/80 backdrop-blur px-2 py-1 rounded border border-slate-700 text-[8px] md:text-[10px] font-bold text-slate-300 font-mono shadow-lg">
+                            AS ${data.as}
+                        </div>
+                    </div>
+                `;
+            };
+            drawISPNode(ispAPos, state.ispA, 'ispA');
+            drawISPNode(ispBPos, state.ispB, 'ispB');
+
+            if (state.peering.status === 'configured') {
+                const x1 = ispAPos.x * (width/100);
+                const y1 = ispAPos.y * (height/100);
+                const x2 = ispBPos.x * (width/100);
+                const y2 = ispBPos.y * (height/100);
+                const offset = 30;
+                
+                const pathD = `M ${x1 + offset} ${y1} L ${x2 - offset} ${y2}`;
+                svgContent += `
+                    <path d="${pathD}" stroke="#eab308" stroke-width="4" fill="none" class="draw-path" filter="url(#glow)" opacity="0.8"/>
+                    <path d="${pathD}" stroke="#fef08a" stroke-width="2" fill="none" stroke-dasharray="5,5" class="animate-dash-slow" />
+                `;
+            }
+
+            const slots = [{x: 15, y: 20}, {x: 85, y: 20}, {x: 15, y: 80}, {x: 85, y: 80}];
+
+            state.zones.slice(0, 4).forEach((zone, idx) => {
+                const slot = slots[idx];
+                const targetISP = zone.ispId === 'A' ? ispAPos : ispBPos;
+                const isOnline = zone.status === 'online';
+                const isSelected = zone.id === state.selectedZoneId;
+                const color = zone.ispId === 'A' ? '#22c55e' : '#3b82f6';
+                
+                const x1 = slot.x * (width/100);
+                const y1 = slot.y * (height/100);
+                const x2 = targetISP.x * (width/100);
+                const y2 = targetISP.y * (height/100);
+                
+                const pathD = `M ${x1} ${y1} Q ${(x1+x2)/2} ${y1} ${x2} ${y2}`;
+
+                svgContent += `<path d="${pathD}" stroke="#1e293b" stroke-width="4" fill="none" opacity="0.5" />`;
+                
+                if (isOnline) {
+                    svgContent += `<path d="${pathD}" stroke="${color}" stroke-width="2" fill="none" class="draw-path" filter="url(#glow)" />`;
+                    svgContent += `
+                        <circle r="3" fill="#fff">
+                            <animateMotion dur="${zone.ispId === 'A' && state.ispA.localPref > 100 ? '1s' : '2s'}" repeatCount="indefinite" path="${pathD}" rotate="auto" />
+                        </circle>
+                    `;
+                }
+
+                if (isSelected && state.activeTab === 'zones') {
+                    const cx = slot.x * (width/100);
+                    const cy = slot.y * (height/100);
+                    svgContent += `
+                        <g transform="translate(${cx}, ${cy})">
+                            <circle r="35" stroke="#06b6d4" stroke-width="1" fill="none" stroke-dasharray="10 5" class="animate-spin-slow" opacity="0.6"/>
+                            <circle r="40" stroke="#06b6d4" stroke-width="1" fill="none" stroke-dasharray="2 8" class="animate-spin-reverse" opacity="0.4"/>
+                            <path d="M-45,0 L-35,0 M45,0 L35,0 M0,-45 L0,-35 M0,45 L0,35" stroke="#06b6d4" stroke-width="2" />
+                        </g>
+                    `;
+                }
+
+                nodesHtml += `
+                    <div style="left: ${slot.x}%; top: ${slot.y}%; transform: translate(-50%, -50%);" 
+                         class="absolute w-10 h-10 md:w-12 md:h-12 rounded bg-slate-900 border-2 ${isOnline ? (zone.ispId==='A'?'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]':'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]') : (isSelected ? 'border-cyan-500' : 'border-slate-700')} flex items-center justify-center z-20 pointer-events-auto cursor-pointer hover:scale-110 transition-transform"
+                         onclick="state.selectedZoneId=${zone.id}; state.inputIp='${zone.config.ip}'; state.inputCidr=${zone.config.cidr||24}; switchTab('zones');">
+                        <i data-lucide="home" class="w-5 h-5 ${isOnline ? 'text-white' : 'text-slate-500'}"></i>
+                        <div class="absolute -bottom-6 text-[9px] w-24 text-center text-slate-400 font-mono bg-black/60 rounded px-1">${zone.name}</div>
+                    </div>
+                `;
+            });
+
+            svg.innerHTML = svgContent;
+            nodesDiv.innerHTML = nodesHtml;
+            lucide.createIcons();
+        }
+
+        function updateGlobalStatus() {
+            const statusPanel = document.getElementById('status-panel');
+            const statusText = document.getElementById('status-text');
+            const statusLight = document.getElementById('status-light');
+            const prefA = document.getElementById('pref-a-display');
+            const prefB = document.getElementById('pref-b-display');
+
+            const isUp = state.peering.status === 'configured';
+            const statusString = isUp ? "ONLINE" : "OFFLINE";
+            
+            // Only update DOM if status changed to prevent scramble spam
+            if(statusText.dataset.current !== statusString) {
+                statusText.dataset.current = statusString;
+                
+                if(isUp) {
+                    statusPanel.classList.remove('border-red-500');
+                    statusPanel.classList.add('border-green-500', 'shadow-[0_0_20px_rgba(34,197,94,0.3)]');
+                    
+                    statusLight.classList.remove('bg-red-500', 'shadow-[0_0_10px_red]');
+                    statusLight.classList.add('bg-green-500', 'shadow-[0_0_10px_#22c55e]');
+                    
+                    statusText.classList.remove('text-red-400');
+                    statusText.classList.add('text-green-400', 'neon-green');
+                } else {
+                    statusPanel.classList.add('border-red-500');
+                    statusPanel.classList.remove('border-green-500', 'shadow-[0_0_20px_rgba(34,197,94,0.3)]');
+                    
+                    statusLight.classList.add('bg-red-500', 'shadow-[0_0_10px_red]');
+                    statusLight.classList.remove('bg-green-500', 'shadow-[0_0_10px_#22c55e]');
+                    
+                    statusText.classList.add('text-red-400');
+                    statusText.classList.remove('text-green-400', 'neon-green');
+                }
+                scrambleText(statusText, statusString);
+            }
+
+            prefA.innerText = state.ispA.localPref;
+            prefB.innerText = state.ispB.localPref;
+            document.getElementById('score-display').innerText = state.score + "%";
+        }
+
+        function render() {
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                if(btn.id === `tab-${state.activeTab}`) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            renderAdvisor();
+            renderContent();
+            renderMap();
+            updateGlobalStatus();
+            lucide.createIcons();
+        }
+
+        window.onload = () => {
+            resizeCanvas();
+            initParticles();
+            animateCanvas();
+            render();
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                renderMap();
+            });
+        };
+
+    </script>
+</body>
+</html>
