@@ -488,6 +488,10 @@
                     <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">STP</span>
                     <i data-lucide="git-branch" class="w-3 h-3 text-indigo-400"></i>
                 </button>
+                <button onclick="switchTab('pvst')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-pvst">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">PVST</span>
+                    <i data-lucide="network" class="w-3 h-3 text-rose-400"></i>
+                </button>
                 <button onclick="switchTab('calc')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-calc">
                     <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">MATRIX</span>
                     <i data-lucide="binary" class="w-3 h-3 text-cyan-200"></i>
@@ -1121,6 +1125,7 @@
             else if (t === 'protocols') { title = "Protocol Database"; text = "Port Registry and Physical Layer specs. Click a category to drill down into specific services."; type = "info"; } 
             else if (t === 'ports') { title = "Global Port Registry"; text = "Database of standard TCP/UDP ports. Use search to filter or load external CSV for full dataset."; type = "info"; }
             else if (t === 'stp') { title = "Spanning Tree Protocol"; text = "Layer 2 Loop Prevention. Visualizing Root Bridge election and path costs. Configure to prevent broadcast storms."; type = "info"; }
+            else if (t === 'pvst') { title = "PVST+ Load Balancing"; text = "Per-VLAN Spanning Tree. Optimizing bandwidth by creating different logical topologies for different VLANs."; type = "info"; }
             else if (t === 'nat') { title = "Network Address Translation"; text = "Simulating Inside-to-Outside translation. Visualizing how private LANs access the public Internet."; type = "info"; }
             else { title = "Binary Matrix Decoder"; text = "Visualizing the subnet mask in binary helps understand where the Network portion ends and the Host portion begins."; }
             const borderColor = type === 'info' ? 'border-cyan-500' : type === 'warning' ? 'border-yellow-500' : type === 'error' ? 'border-red-500' : 'border-green-500';
@@ -1323,6 +1328,99 @@
                                     <span class="text-slate-500">! 4. Root Guard (On ports connecting to other switches)</span><br>
                                     <span class="text-blue-400">Switch(config)#</span> interface Gi0/25<br>
                                     <span class="text-blue-400">Switch(config-if)#</span> spanning-tree guard root
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (tab === 'pvst') {
+                container.innerHTML = `
+                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
+                        <div class="glass-panel p-4 rounded-sm border border-rose-500/30">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white font-cyber flex items-center gap-2">
+                                    <i data-lucide="network" class="text-rose-400" size="16"></i> Per-VLAN Spanning Tree
+                                </h3>
+                                <div class="text-[10px] font-mono text-rose-400 border border-rose-800 px-1 bg-rose-900/20">PVST+ / Rapid-PVST</div>
+                            </div>
+                            
+                            <!-- Analogy Card -->
+                            <div class="bg-black/60 border-l-2 border-rose-500 p-3 rounded mb-4">
+                                <div class="text-[10px] text-rose-300 font-bold uppercase mb-1">Concept Analogy: "The Multi-Lane Highway"</div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-mono italic">
+                                    "Standard STP is like closing one lane for everyone. PVST+ creates separate lanes. Cars (VLAN 10) use the Left Lane, Trucks (VLAN 20) use the Right Lane. Both roads are used, doubling efficiency."
+                                </p>
+                            </div>
+                            
+                            <!-- Interactive/Visual Topology -->
+                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-48 flex justify-center items-center mb-4">
+                                <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                                    <!-- VLAN 10 Path (Red) -->
+                                    <line x1="25%" y1="70%" x2="50%" y2="20%" stroke="#ef4444" stroke-width="2" class="opacity-60" /> 
+                                    <circle cx="25%" cy="70%" r="2" fill="#ef4444">
+                                        <animateMotion dur="2s" repeatCount="indefinite" path="M 0 0 L 120 -100" /> 
+                                    </circle>
+                                    
+                                    <!-- VLAN 20 Path (Blue) -->
+                                    <line x1="75%" y1="70%" x2="50%" y2="20%" stroke="#3b82f6" stroke-width="2" class="opacity-60" />
+                                    <circle cx="75%" cy="70%" r="2" fill="#3b82f6">
+                                        <animateMotion dur="2s" repeatCount="indefinite" path="M 0 0 L -120 -100" />
+                                    </circle>
+                                </svg>
+                                
+                                <!-- Switches -->
+                                <div class="absolute top-[10%] left-[50%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-12 h-12 bg-slate-900 border border-slate-500 rounded flex items-center justify-center relative">
+                                         <div class="absolute -top-3 -left-3 text-[9px] bg-red-900/80 text-red-300 px-1 rounded border border-red-500">ROOT V10</div>
+                                         <div class="absolute -top-3 -right-3 text-[9px] bg-blue-900/80 text-blue-300 px-1 rounded border border-blue-500">ROOT V20</div>
+                                        <i data-lucide="layers" class="text-white w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-[9px] text-slate-400 font-mono mt-1">CORE SWITCH</span>
+                                </div>
+
+                                <div class="absolute top-[70%] left-[25%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-10 h-10 bg-slate-900 border border-red-500/50 rounded flex items-center justify-center">
+                                        <span class="text-red-400 font-bold text-xs">V10</span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-mono mt-1">ACCESS A</span>
+                                </div>
+
+                                <div class="absolute top-[70%] left-[75%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-10 h-10 bg-slate-900 border border-blue-500/50 rounded flex items-center justify-center">
+                                        <span class="text-blue-400 font-bold text-xs">V20</span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-mono mt-1">ACCESS B</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Benefits Grid -->
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-slate-900/50 p-2 rounded border border-green-900/30">
+                                    <div class="text-[10px] text-green-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="bar-chart-2" size="10"></i> LOAD BALANCING</div>
+                                    <p class="text-[9px] text-slate-400">Uses all redundant links by assigning different VLANs to different paths.</p>
+                                </div>
+                                <div class="bg-slate-900/50 p-2 rounded border border-purple-900/30">
+                                    <div class="text-[10px] text-purple-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="cpu" size="10"></i> CPU OVERHEAD</div>
+                                    <p class="text-[9px] text-slate-400">Requires more CPU/Memory than standard CST because it maintains a tree for EACH VLAN.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuration Section -->
+                        <div class="glass-panel p-4 rounded-sm border border-blue-500/30">
+                            <h3 class="font-bold text-white font-cyber mb-3 text-xs uppercase flex items-center gap-2">
+                                <i data-lucide="terminal" size="14" class="text-blue-400"></i> Load Balancing Config
+                            </h3>
+                            <div class="bg-black/80 border border-slate-700 p-3 rounded font-mono text-[10px] text-slate-300 overflow-x-auto shadow-inner">
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! Core Switch 1: Primary for VLAN 10, Secondary for VLAN 20</span><br>
+                                    <span class="text-blue-400">Core1(config)#</span> spanning-tree vlan 10 root primary<br>
+                                    <span class="text-blue-400">Core1(config)#</span> spanning-tree vlan 20 root secondary
+                                </div>
+                                <div>
+                                    <span class="text-slate-500">! Core Switch 2: Primary for VLAN 20, Secondary for VLAN 10</span><br>
+                                    <span class="text-blue-400">Core2(config)#</span> spanning-tree vlan 20 root primary<br>
+                                    <span class="text-blue-400">Core2(config)#</span> spanning-tree vlan 10 root secondary
                                 </div>
                             </div>
                         </div>
