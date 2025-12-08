@@ -1274,14 +1274,19 @@
                                 <h3 class="font-bold text-white font-cyber flex items-center gap-2">
                                     <i data-lucide="git-branch" class="text-indigo-400" size="16"></i> Spanning Tree Protocol
                                 </h3>
-                                <div class="text-[10px] font-mono text-indigo-400 border border-indigo-800 px-1 bg-indigo-900/20">IEEE 802.1D</div>
+                                <div class="text-[10px] font-mono text-indigo-400 border border-indigo-800 px-1 bg-indigo-900/20">IEEE 802.1D / 802.1w</div>
                             </div>
-                            <p class="text-xs text-slate-300 leading-relaxed mb-4 font-mono">
-                                STP prevents Layer 2 loops in redundant network topologies. It logically blocks specific ports (Red) to ensure a single active path (Green) between any two network nodes.
-                            </p>
+                            
+                            <!-- Analogy Card -->
+                            <div class="bg-black/60 border-l-2 border-indigo-500 p-3 rounded mb-4">
+                                <div class="text-[10px] text-indigo-300 font-bold uppercase mb-1">Concept Analogy: "The Group Project"</div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-mono italic">
+                                    "Imagine a group project. To stop 5 people from shouting at once (loops/broadcast storms), you pick ONE leader (Root Bridge). Everyone talks ONLY to the leader or a designated messenger. STP blocks the noisy paths."
+                                </p>
+                            </div>
                             
                             <!-- Interactive/Visual Topology -->
-                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-48 flex justify-center items-center">
+                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-48 flex justify-center items-center mb-4">
                                 <svg class="absolute inset-0 w-full h-full pointer-events-none">
                                     <!-- Triangle Lines -->
                                     <line x1="50%" y1="20%" x2="25%" y2="70%" stroke="#22c55e" stroke-width="2" class="opacity-50" /> <!-- Root to SW-B -->
@@ -1318,6 +1323,18 @@
                                     <span class="text-[9px] text-slate-500 font-mono mt-1">SW-C</span>
                                 </div>
                             </div>
+                            
+                            <!-- Security Features Grid -->
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-slate-900/50 p-2 rounded border border-red-900/30">
+                                    <div class="text-[10px] text-red-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="shield-alert" size="10"></i> BPDU GUARD</div>
+                                    <p class="text-[9px] text-slate-400">Disables an access port if a switch is plugged in. Prevents unauthorized expansion.</p>
+                                </div>
+                                <div class="bg-slate-900/50 p-2 rounded border border-yellow-900/30">
+                                    <div class="text-[10px] text-yellow-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="crown" size="10"></i> ROOT GUARD</div>
+                                    <p class="text-[9px] text-slate-400">Protects the Root Bridge role. If a better BPDU arrives, port becomes inconsistent.</p>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Configuration Section -->
@@ -1326,10 +1343,26 @@
                                 <i data-lucide="terminal" size="14" class="text-blue-400"></i> Configuration (Cisco IOS)
                             </h3>
                             <div class="bg-black/80 border border-slate-700 p-3 rounded font-mono text-[10px] text-slate-300 overflow-x-auto shadow-inner">
-                                <div class="mb-2"><span class="text-slate-500">! Enable Rapid PVST+ (Faster convergence)</span><br><span class="text-blue-400">Switch(config)#</span> spanning-tree mode rapid-pvst</div>
-                                <div class="mb-2"><span class="text-slate-500">! Force this switch to be Root Bridge</span><br><span class="text-blue-400">Switch(config)#</span> spanning-tree vlan 1 root primary</div>
-                                <div class="mb-2"><span class="text-slate-500">! Or set priority manually (Lower = Better)</span><br><span class="text-blue-400">Switch(config)#</span> spanning-tree vlan 1 priority 4096</div>
-                                <div><span class="text-slate-500">! Verify Status</span><br><span class="text-blue-400">Switch#</span> show spanning-tree</div>
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! 1. Enable Rapid PVST+ (Faster convergence)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> spanning-tree mode rapid-pvst
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! 2. Force this switch to be Root Bridge (Primary)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> spanning-tree vlan 1 root primary
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! 3. Configure Access Ports (BPDU Guard & PortFast)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> interface range Gi0/1 - 24<br>
+                                    <span class="text-blue-400">Switch(config-if-range)#</span> switchport mode access<br>
+                                    <span class="text-blue-400">Switch(config-if-range)#</span> spanning-tree portfast<br>
+                                    <span class="text-blue-400">Switch(config-if-range)#</span> spanning-tree bpduguard enable
+                                </div>
+                                <div>
+                                    <span class="text-slate-500">! 4. Root Guard (On ports connecting to other switches)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> interface Gi0/25<br>
+                                    <span class="text-blue-400">Switch(config-if)#</span> spanning-tree guard root
+                                </div>
                             </div>
                         </div>
                     </div>
