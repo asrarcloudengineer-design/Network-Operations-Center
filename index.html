@@ -492,6 +492,10 @@
                     <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">PVST</span>
                     <i data-lucide="network" class="w-3 h-3 text-rose-400"></i>
                 </button>
+                <button onclick="switchTab('sdwan')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-sdwan">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">SD-WAN</span>
+                    <i data-lucide="cloud-lightning" class="w-3 h-3 text-pink-400"></i>
+                </button>
                 <button onclick="switchTab('calc')" class="nav-tab flex-shrink-0 min-w-[80px] py-3 px-1 flex flex-col items-center justify-center gap-1 group" id="tab-calc">
                     <span class="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-wider font-tech">MATRIX</span>
                     <i data-lucide="binary" class="w-3 h-3 text-cyan-200"></i>
@@ -890,7 +894,10 @@
             selectedZoneId: null,
             inputIp: '',
             inputCidr: 24,
-            inputMask: '255.255.255.0'
+            inputMask: '255.255.255.0',
+            sdwanData: null,
+            sdwanLoading: false,
+            sdwanError: null
         };
 
         function generateZones() {
@@ -1094,6 +1101,45 @@
             addLog("ZONE", `${zone.name} ONLINE. Eff: ${efficiency.toFixed(1)}%`, "success"); render();
         }
 
+        // --- SD-WAN Logic ---
+        async function loadSdwanData() {
+            if (state.sdwanData) return; // Already loaded
+            state.sdwanLoading = true;
+            render(); // Show loading state
+
+            try {
+                const response = await fetch('sdwan.csv');
+                if (!response.ok) throw new Error("Failed to load sdwan.csv");
+                const text = await response.text();
+                parseSdwanCSV(text);
+            } catch (e) {
+                console.error(e);
+                state.sdwanError = e.message;
+                state.sdwanLoading = false;
+                render();
+            }
+        }
+
+        function parseSdwanCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length === 0) return;
+            
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for(let i=1; i<lines.length; i++) {
+                const row = lines[i].split(',');
+                if (row.length === headers.length) {
+                    let obj = {};
+                    headers.forEach((h, index) => obj[h] = row[index]?.trim());
+                    data.push(obj);
+                }
+            }
+            state.sdwanData = { headers, data };
+            state.sdwanLoading = false;
+            render();
+        }
+
         // --- RENDERERS ---
         function switchTab(tab) {
             state.activeTab = tab;
@@ -1102,6 +1148,9 @@
                 state.inputIp = z.config.ip;
                 state.inputCidr = z.config.cidr || 24;
                 state.inputMask = cidrToMask(state.inputCidr);
+            }
+            if (tab === 'sdwan') {
+                loadSdwanData();
             }
             //selectedOsiLayer = null; // Removed so logic persists, but visual reset handled elsewhere if needed
             scrambleText(document.getElementById('main-header'), 'NetSim Pro');
@@ -1127,6 +1176,7 @@
             else if (t === 'stp') { title = "Spanning Tree Protocol"; text = "Layer 2 Loop Prevention. Visualizing Root Bridge election and path costs. Configure to prevent broadcast storms."; type = "info"; }
             else if (t === 'pvst') { title = "PVST+ Load Balancing"; text = "Per-VLAN Spanning Tree. Optimizing bandwidth by creating different logical topologies for different VLANs."; type = "info"; }
             else if (t === 'nat') { title = "Network Address Translation"; text = "Simulating Inside-to-Outside translation. Visualizing how private LANs access the public Internet."; type = "info"; }
+            else if (t === 'sdwan') { title = "Software-Defined WAN"; text = "Centralized network control. Loading configuration data from remote repository 'sdwan.csv'."; type = "info"; }
             else { title = "Binary Matrix Decoder"; text = "Visualizing the subnet mask in binary helps understand where the Network portion ends and the Host portion begins."; }
             const borderColor = type === 'info' ? 'border-cyan-500' : type === 'warning' ? 'border-yellow-500' : type === 'error' ? 'border-red-500' : 'border-green-500';
             const icon = type === 'error' ? 'alert-triangle' : 'info';
@@ -1426,85 +1476,20 @@
                         </div>
                     </div>
                 `;
-            } else if (tab === 'nat') {
-                container.innerHTML = `
-                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <!-- Header / Definition -->
-                        <div class="glass-panel p-4 rounded-sm border border-teal-500/30">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="font-bold text-white font-cyber flex items-center gap-2">
-                                    <i data-lucide="arrow-left-right" class="text-teal-400" size="16"></i> Network Address Translation
-                                </h3>
-                                <div class="text-[10px] font-mono text-teal-400 border border-teal-800 px-1 bg-teal-900/20">RFC 1631</div>
-                            </div>
-                            <p class="text-xs text-slate-300 leading-relaxed font-mono">
-                                NAT allows multiple devices on a private network to share a single public IP address to access the internet. It acts as the gateway translator between your LAN and the WAN.
-                            </p>
-                            <!-- Mini-Simulation -->
-                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-32 flex items-center justify-between mt-4 overflow-hidden">
-                                <div class="text-center z-10 w-1/3">
-                                    <div class="text-[9px] text-slate-500 mb-1">INSIDE (PRIVATE)</div>
-                                    <div class="font-mono text-purple-400 text-xs">192.168.1.5</div>
-                                    <i data-lucide="smartphone" class="mx-auto text-purple-500 mt-1 w-5 h-5"></i>
-                                </div>
-                                <div class="text-center z-10 w-1/3 relative">
-                                    <div class="w-10 h-10 bg-slate-900 border border-teal-500 rounded mx-auto flex items-center justify-center shadow-[0_0_15px_rgba(45,212,191,0.3)]">
-                                        <i data-lucide="router" class="text-teal-400 w-5 h-5"></i>
-                                    </div>
-                                    <div class="text-[9px] text-teal-500 mt-1 font-bold">NAT ROUTER</div>
-                                    <div class="nat-packet"></div>
-                                </div>
-                                <div class="text-center z-10 w-1/3">
-                                    <div class="text-[9px] text-slate-500 mb-1">OUTSIDE (PUBLIC)</div>
-                                    <div class="font-mono text-cyan-400 text-xs">203.0.113.1</div>
-                                    <i data-lucide="globe" class="mx-auto text-cyan-500 mt-1 w-5 h-5"></i>
-                                </div>
-                            </div>
-                            <!-- Translation Table Simulation -->
-                            <div class="mt-2 bg-slate-900/80 p-2 rounded border border-slate-800 font-mono text-[9px]">
-                                <div class="flex text-slate-500 border-b border-slate-700 pb-1 mb-1">
-                                    <div class="flex-1">Inside Local</div>
-                                    <div class="w-4">-></div>
-                                    <div class="flex-1 text-right">Inside Global</div>
-                                </div>
-                                <div class="flex text-purple-300">
-                                    <div class="flex-1">192.168.1.5:49152</div>
-                                    <div class="w-4 text-slate-600">-></div>
-                                    <div class="flex-1 text-right text-cyan-300">203.0.113.1:2001</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- NAT Types -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div class="bg-black/40 p-3 rounded border border-slate-800 hover:border-teal-500/50 transition-colors">
-                                <div class="text-teal-400 font-bold text-xs mb-2">Static NAT</div>
-                                <p class="text-[10px] text-slate-400 leading-tight">One-to-One mapping. One private IP is permanently mapped to one public IP. Used for servers.</p>
-                            </div>
-                            <div class="bg-black/40 p-3 rounded border border-slate-800 hover:border-teal-500/50 transition-colors">
-                                <div class="text-teal-400 font-bold text-xs mb-2">Dynamic NAT</div>
-                                <p class="text-[10px] text-slate-400 leading-tight">Many-to-Many. Maps private IPs to a pool of available public IPs on a first-come basis.</p>
-                            </div>
-                            <div class="bg-black/40 p-3 rounded border border-slate-800 hover:border-teal-500/50 transition-colors">
-                                <div class="text-teal-400 font-bold text-xs mb-2">PAT (Overload)</div>
-                                <p class="text-[10px] text-slate-400 leading-tight">Many-to-One. Maps multiple private IPs to a single public IP using different port numbers.</p>
-                            </div>
-                        </div>
-
-                        <!-- Insight: Why PAT? -->
-                        <div class="glass-panel p-4 rounded-sm border border-yellow-500/30">
-                            <h3 class="font-bold text-white font-cyber mb-2 text-xs uppercase flex items-center gap-2">
-                                <i data-lucide="lightbulb" size="14" class="text-yellow-400"></i> Insight: Why use PAT (Overload)?
-                            </h3>
-                            <p class="text-xs text-slate-300 leading-relaxed font-mono mb-2">
-                                <strong class="text-yellow-400">Problem:</strong> In large networks (enterprises, data centers), thousands of devices need internet access. Buying thousands of Public IPs is expensive and wasteful.
-                            </p>
-                            <p class="text-xs text-slate-300 leading-relaxed font-mono">
-                                <strong class="text-green-400">Solution:</strong> PAT allows a single Public IP to support over 65,000 simultaneous connections by tracking unique source ports. It creates a massive "Extension Cord" for the internet.
-                            </p>
-                        </div>
-                    </div>
-                `;
+            } else if (tab === 'sdwan') {
+                let content = '';
+                if (state.sdwanLoading) {
+                    content = `<div class="p-10 text-center text-pink-400 animate-pulse font-mono">INITIALIZING UPLINK... FETCHING SD-WAN CONFIG...</div>`;
+                } else if (state.sdwanError) {
+                    content = `<div class="p-10 text-center text-red-400 font-mono border border-red-500/30 rounded bg-red-900/10"><div class="mb-2 font-bold">CONNECTION FAILURE</div><div class="text-xs">${state.sdwanError}</div><div class="mt-4 text-[10px] text-slate-500">Ensure 'sdwan.csv' is present in the repository root.</div></div>`;
+                } else if (state.sdwanData) {
+                    const headers = state.sdwanData.headers;
+                    const rows = state.sdwanData.data;
+                    const headerHtml = headers.map(h => `<div class="flex-1 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">${h}</div>`).join('');
+                    const rowsHtml = rows.map(row => `<div class="flex items-center justify-between p-2 border-b border-slate-800 hover:bg-pink-900/10 hover:border-pink-500/50 transition-colors group">${headers.map(h => `<div class="flex-1 font-mono text-slate-300 text-xs truncate group-hover:text-white pr-2">${row[h]}</div>`).join('')}</div>`).join('');
+                    content = `<div class="fade-enter-active h-full flex flex-col"><div class="glass-panel p-4 rounded-sm border border-pink-500/30 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-center mb-4 border-b border-pink-500/20 pb-2"><h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="cloud-lightning" class="text-pink-400" size="16"></i> SD-WAN CONTROLLER</h3><div class="text-[9px] font-mono text-pink-400">LIVE DATA FEED</div></div><div class="flex items-center justify-between border-b border-slate-800 mb-2">${headerHtml}</div><div class="flex-1 overflow-y-auto custom-scrollbar">${rowsHtml}</div><div class="text-[9px] text-slate-600 font-mono pt-2 text-right">NODES ACTIVE: ${rows.length}</div></div></div>`;
+                }
+                container.innerHTML = content;
             } else if (tab === 'calc') {
                 container.innerHTML = `
                     <div class="glass-panel rounded p-4 border border-slate-700 fade-enter-active">
