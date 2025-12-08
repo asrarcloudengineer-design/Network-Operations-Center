@@ -739,175 +739,329 @@
             } else if (tab === 'zones') {
                 const zList = state.zones.map(z => `<div onclick="state.selectedZoneId=${z.id}; state.inputIp='${z.config.ip}'; state.inputCidr=${z.config.cidr||24}; state.inputMask=cidrToMask(state.inputCidr); render();" class="cursor-pointer p-2 rounded mb-1 border flex justify-between items-center text-xs transition-all duration-200 ${state.selectedZoneId === z.id ? 'bg-cyan-900/40 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.2)] scale-[1.02]' : 'bg-slate-800/30 border-transparent hover:bg-slate-700/50'}"><span class="font-bold font-mono ${z.status === 'online' ? 'text-green-400 neon-green' : 'text-slate-300'}">${z.name}</span><span class="${z.ispId==='A'?'text-green-500':'text-blue-500'} font-mono font-bold text-[10px]">AS${z.ispId==='A'?state.ispA.as:state.ispB.as}</span></div>`).join('');
                 const currZ = state.zones.find(z => z.id === state.selectedZoneId); const totalHosts = Math.pow(2, 32 - state.inputCidr) - 2; const waste = Math.max(0, totalHosts - currZ.hostsRequired); const wastePercent = Math.min(100, (waste / totalHosts) * 100);
-                container.innerHTML = `<div class="flex flex-col sm:flex-row gap-4 h-[380px] fade-enter-active"><div class="w-full sm:w-1/3 overflow-y-auto pr-2 custom-scrollbar border-b sm:border-b-0 sm:border-r border-slate-700 pb-2 sm:pb-0 h-1/3 sm:h-full">${zList}</div><div class="w-full sm:w-2/3 glass-panel rounded p-4 flex flex-col h-2/3 sm:h-full"><div class="flex justify-between items-start mb-4 border-b border-white/5 pb-2"><div><h3 class="font-bold text-white flex items-center gap-2 font-cyber">${currZ.name}</h3><div class="text-xs text-slate-400">Req: <span class="text-white font-bold">${currZ.hostsRequired}</span> hosts</div></div></div><div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar"><div><label class="block text-xs text-slate-400 mb-1">Network Address</label><input type="text" class="w-full cyber-input rounded-sm p-2 font-mono text-white text-sm outline-none" value="${state.inputIp}" oninput="handleIpInput(this.value)"></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-xs text-slate-400 mb-1">Subnet Mask</label><input type="text" class="w-full cyber-input rounded-sm p-2 font-mono text-white text-sm outline-none" value="${state.inputMask}" onchange="updateZoneMask(this.value)"></div><div><label class="block text-xs text-slate-400 mb-1 text-right">CIDR /${state.inputCidr}</label><input type="range" min="8" max="30" value="${state.inputCidr}" class="w-full accent-cyan-500" oninput="updateZoneCidr(this.value)"></div></div><div class="mt-auto pt-2"><button onclick="handleZoneConnect()" class="w-full py-2 bg-gradient-to-r from-cyan-700 to-blue-700 hover:from-cyan-600 hover:to-blue-600 text-white rounded-sm font-bold text-sm shadow-lg shadow-cyan-900/40 border border-cyan-500/30 transition-all hover:scale-[1.02]">Advertise Route</button></div></div></div></div>`;
-            } else if (tab === 'academy' || tab === 'osi' || tab === 'protocols' || tab === 'ports' || tab === 'stp' || tab === 'pvst' || tab === 'nat') {
-                // Reuse existing HTML structures for these tabs (as they are static or self-contained)
-                // Just ensuring the logic branches exist.
-                if (tab === 'academy') container.innerHTML = `<div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2"><div class="glass-panel p-4 rounded-sm border border-cyan-500/30"><div class="text-white font-bold">ACADEMY MODULES LOADED</div></div></div>`; 
-                if (tab === 'osi') container.innerHTML = `<div class="flex gap-4 h-full fade-enter-active"><div class="w-full flex flex-col justify-center relative px-8"><div class="relative z-10 space-y-2">${osiLayers.map(l => `<div class="osi-layer p-3 rounded-sm border-l-2 border-slate-700 bg-black/60 mb-2 relative overflow-hidden hover:border-cyan-500 transition-all duration-200" onclick="openOsiModal(${l.id})"><div class="flex justify-between items-center relative z-10"><span class="font-mono text-xs text-slate-500 w-8">L${l.id}</span><span class="font-bold text-sm text-slate-300 flex-1 font-tech">${l.name}</span><span class="text-[10px] font-mono text-cyan-500 border border-cyan-900/50 px-1 rounded">${l.pdu}</span></div></div>`).join('')}</div></div></div>`;
-                if (tab === 'protocols') { const categories = Object.keys(protocolData).map(key => { const cat = protocolData[key]; const items = cat.items.map(item => `<div class="bg-black/40 border border-slate-800 p-3 rounded hover:border-orange-500 transition-colors cursor-pointer group flex justify-between items-center" onclick="openProtocolModal('${key}', '${item.id}')"><div class="flex items-center gap-3"><i data-lucide="${item.icon}" class="text-orange-400 w-4 h-4"></i><span class="font-bold text-sm text-slate-300 group-hover:text-white">${item.name}</span></div><span class="text-[10px] font-mono text-slate-500">${item.port}</span></div>`).join(''); return `<div class="mb-6"><h3 class="text-xs font-bold text-yellow-500 uppercase tracking-widest mb-3 border-b border-yellow-500/20 pb-1">${cat.name}</h3><div class="grid grid-cols-1 gap-2">${items}</div></div>`; }).join(''); container.innerHTML = `<div class="fade-enter-active h-full overflow-y-auto custom-scrollbar pr-2"><div class="glass-panel p-6 rounded-sm border border-orange-500/30">${categories}</div></div>`; }
-                if (tab === 'ports') { const portsList = loadedPorts.map(p => `<div class="flex items-center justify-between p-2 border-b border-slate-800 hover:bg-green-900/10 hover:border-green-500/50 transition-colors group"><div class="w-16 font-mono text-green-400 text-sm">${p.port}</div><div class="w-20 font-mono text-slate-400 text-xs">${p.protocol}</div><div class="flex-1 text-slate-300 text-xs truncate group-hover:text-white">${p.desc}</div></div>`).join(''); container.innerHTML = `<div class="fade-enter-active h-full flex flex-col"><div class="glass-panel p-4 rounded-sm border border-green-500/30 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-center mb-4 border-b border-green-500/20 pb-2"><h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="list" class="text-green-400" size="16"></i> GLOBAL PORT REGISTRY</h3><div><label class="px-3 py-1.5 bg-green-900/30 border border-green-500/50 rounded-sm text-[10px] font-bold text-green-300 cursor-pointer hover:bg-green-800/50 transition-colors uppercase tracking-wider flex items-center gap-2"><i data-lucide="upload" size="10"></i> MOUNT EXTERNAL CSV<input type="file" accept=".csv" class="hidden" onchange="handleFileSelect(event)"></label></div></div><div class="flex-1 overflow-y-auto custom-scrollbar">${portsList}</div></div></div>`; }
-                if (tab === 'stp') container.innerHTML = `<div class="glass-panel p-4 rounded-sm border border-indigo-500/30"><h3 class="font-bold text-white font-cyber mb-3">Spanning Tree Protocol</h3><p class="text-xs text-slate-300">Loop prevention topology.</p></div>`;
-                if (tab === 'pvst') container.innerHTML = `<div class="glass-panel p-4 rounded-sm border border-rose-500/30"><h3 class="font-bold text-white font-cyber mb-3">PVST+</h3><p class="text-xs text-slate-300">Per-VLAN Load Balancing.</p></div>`;
-                if (tab === 'nat') container.innerHTML = `<div class="glass-panel p-4 rounded-sm border border-teal-500/30"><h3 class="font-bold text-white font-cyber mb-3">NAT</h3><p class="text-xs text-slate-300">Network Address Translation simulation.</p></div>`;
-            } else if (tab === 'vpn') {
-                 container.innerHTML = `
-                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <div class="glass-panel p-4 rounded-sm border border-purple-500/30">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="lock" class="text-purple-400" size="16"></i> Virtual Private Network</h3>
-                            </div>
-                            <p class="text-xs text-slate-300 font-mono mb-4">Creates a secure, encrypted tunnel over a public network. Hides IP and data.</p>
-                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-32 flex items-center justify-between overflow-hidden">
-                                <div class="text-center z-10"><i data-lucide="laptop" class="text-slate-400 w-8 h-8 mx-auto"></i><div class="text-[9px] text-slate-500 mt-1">USER</div></div>
-                                <div class="flex-1 h-2 bg-slate-800 mx-4 relative rounded-full overflow-hidden">
-                                    <div class="absolute inset-0 bg-purple-500/20"></div>
-                                    <div class="absolute top-0 bottom-0 left-0 w-8 bg-purple-500 rounded-full shadow-[0_0_10px_#a855f7] animate-[float-particle_2s_linear_infinite]" style="width: 20px;"></div>
-                                </div>
-                                <div class="text-center z-10"><i data-lucide="server" class="text-purple-400 w-8 h-8 mx-auto"></i><div class="text-[9px] text-purple-500 mt-1">VPN SERVER</div></div>
-                            </div>
-                            <div class="mt-4 grid grid-cols-3 gap-2">
-                                <div class="bg-black/40 p-2 rounded border border-slate-700 text-center"><div class="text-[10px] text-purple-400 font-bold">Split Tunneling</div><div class="text-[9px] text-slate-500">Route specific traffic only</div></div>
-                                <div class="bg-black/40 p-2 rounded border border-slate-700 text-center"><div class="text-[10px] text-purple-400 font-bold">Encryption</div><div class="text-[9px] text-slate-500">AES-256 Data Protection</div></div>
-                                <div class="bg-black/40 p-2 rounded border border-slate-700 text-center"><div class="text-[10px] text-purple-400 font-bold">Tunneling</div><div class="text-[9px] text-slate-500">Secure Data Path</div></div>
-                            </div>
-                        </div>
-                    </div>`;
-            } else if (tab === '8021x') {
+                container.innerHTML = `<div class="flex flex-col sm:flex-row gap-4 h-[380px] fade-enter-active"><div class="w-full sm:w-1/3 overflow-y-auto pr-2 custom-scrollbar border-b sm:border-b-0 sm:border-r border-slate-700 pb-2 sm:pb-0 h-1/3 sm:h-full">${zList}</div><div class="w-full sm:w-2/3 glass-panel rounded p-4 flex flex-col h-2/3 sm:h-full"><div class="flex justify-between items-start mb-4 border-b border-white/5 pb-2"><div><h3 class="font-bold text-white flex items-center gap-2 font-cyber">${currZ.name}</h3><div class="text-xs text-slate-400">Req: <span class="text-white font-bold">${currZ.hostsRequired}</span> hosts</div></div></div><div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar"><div><label class="block text-xs text-slate-400 mb-1">Network Address</label><input type="text" class="w-full cyber-input rounded-sm p-2 font-mono text-white text-sm outline-none" value="${state.inputIp}" oninput="handleIpInput(this.value)"></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-xs text-slate-400 mb-1">Subnet Mask</label><input type="text" class="w-full cyber-input rounded-sm p-2 font-mono text-white text-sm outline-none" value="${state.inputMask}" onchange="updateZoneMask(this.value)"></div><div><label class="block text-xs text-slate-400 mb-1 text-right">CIDR /${state.inputCidr}</label><input type="range" min="8" max="30" value="${state.inputCidr}" class="w-full accent-cyan-500" oninput="updateZoneCidr(this.value)"></div></div><div class="bg-black/40 p-2 rounded border border-slate-800"><label class="block text-xs text-slate-400 mb-1 flex justify-between"><span>Efficiency Analysis</span><span class="${wastePercent > 50 ? 'text-red-400' : 'text-green-400'}">Waste: ${wastePercent.toFixed(1)}%</span></label><div class="h-2 w-full bg-slate-900 rounded-sm mt-2 overflow-hidden flex border border-slate-700"><div class="bg-gradient-to-r from-green-600 to-green-400 h-full" style="width: ${100 - wastePercent}%"></div><div class="bg-red-500/30 h-full" style="width: ${wastePercent}%"></div></div><div class="flex justify-between text-[9px] text-slate-500 mt-1 font-mono"><span>Used: ${currZ.hostsRequired}</span><span>Total: ${totalHosts}</span></div></div><div class="mt-auto pt-2"><button onclick="handleZoneConnect()" class="w-full py-2 bg-gradient-to-r from-cyan-700 to-blue-700 hover:from-cyan-600 hover:to-blue-600 text-white rounded-sm font-bold text-sm shadow-lg shadow-cyan-900/40 border border-cyan-500/30 transition-all hover:scale-[1.02]">Advertise Route</button></div></div></div></div>`;
+            } else if (tab === 'academy') {
                 container.innerHTML = `
                     <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <div class="glass-panel p-4 rounded-sm border border-emerald-500/30">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="shield-check" class="text-emerald-400" size="16"></i> 802.1X Authentication</h3>
+                        <div class="glass-panel p-4 rounded-sm border border-cyan-500/30">
+                            <div class="flex justify-between items-center mb-3"><h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="globe" class="text-cyan-400" size="16"></i> IP Scope Architecture</h3><div class="text-[10px] font-mono text-cyan-400 border border-cyan-800 px-1 bg-cyan-900/20">MODULE_01</div></div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden"><div class="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors"></div><div class="text-cyan-400 font-bold font-tech mb-1">PUBLIC (WAN)</div><p class="text-[10px] text-slate-400 mb-2 leading-relaxed">Globally unique. Like a physical home address. Necessary for internet communication.</p><div class="h-12 bg-slate-900/80 rounded border border-slate-700 relative overflow-hidden flex items-center justify-center"><div class="absolute w-full h-0.5 bg-slate-800"></div><div class="w-2 h-2 bg-cyan-400 rounded-full edu-particle shadow-[0_0_5px_cyan]"></div><i data-lucide="globe" class="absolute left-1 text-slate-600 w-4 h-4"></i><i data-lucide="server" class="absolute right-1 text-slate-600 w-4 h-4"></i></div></div>
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden"><div class="absolute inset-0 bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors"></div><div class="text-purple-400 font-bold font-tech mb-1">PRIVATE (LAN)</div><p class="text-[10px] text-slate-400 mb-2 leading-relaxed">Locally unique. Like a room number. Cannot travel the internet without NAT.</p><div class="h-12 bg-slate-900/80 rounded border border-slate-700 relative overflow-hidden flex items-center justify-center"><div class="absolute inset-2 border border-dashed border-purple-500/30 rounded"></div><div class="w-2 h-2 bg-purple-400 rounded-full edu-contained shadow-[0_0_5px_purple]"></div></div></div>
                             </div>
-                            <div class="flex justify-between items-center text-center mt-6">
-                                <div class="w-1/3"><i data-lucide="smartphone" class="text-slate-300 w-8 h-8 mx-auto mb-2"></i><div class="text-[10px] font-bold text-slate-400">SUPPLICANT</div><div class="text-[8px] text-slate-600">Client Device</div></div>
-                                <div class="w-1/3 border-b-2 border-dashed border-emerald-500/50 relative top-[-10px]"></div>
-                                <div class="w-1/3"><i data-lucide="router" class="text-emerald-400 w-8 h-8 mx-auto mb-2"></i><div class="text-[10px] font-bold text-emerald-400">AUTHENTICATOR</div><div class="text-[8px] text-slate-600">Switch / AP</div></div>
-                                <div class="w-1/3 border-b-2 border-dashed border-emerald-500/50 relative top-[-10px]"></div>
-                                <div class="w-1/3"><i data-lucide="database" class="text-blue-400 w-8 h-8 mx-auto mb-2"></i><div class="text-[10px] font-bold text-blue-400">AUTH SERVER</div><div class="text-[8px] text-slate-600">RADIUS / ISE</div></div>
-                            </div>
-                            <div class="bg-black/40 p-3 rounded mt-6 font-mono text-[10px] text-slate-300">
-                                <p class="mb-2"><span class="text-emerald-400">Function:</span> Port-based Network Access Control (PNAC).</p>
-                                <p><span class="text-emerald-400">Logic:</span> Port starts in 'Unauthorized' state. Only EAPOL traffic allowed. Once credentials verified by RADIUS, port switches to 'Authorized'.</p>
+                            <div class="bg-slate-900/80 p-2 rounded border-l-2 border-purple-500 text-[10px] font-mono text-slate-400"><span class="text-white font-bold block mb-1">RFC 1918 BLOCKS (SAFE ZONES):</span><div class="flex gap-2"><span class="bg-black px-1 rounded text-purple-300 border border-purple-900/50 hover:bg-purple-900/30 transition-colors cursor-help" title="Enterprise Scale">10.0.0.0/8</span><span class="bg-black px-1 rounded text-purple-300 border border-purple-900/50 hover:bg-purple-900/30 transition-colors cursor-help" title="Mid-size Networks">172.16.0.0/12</span><span class="bg-black px-1 rounded text-purple-300 border border-purple-900/50 hover:bg-purple-900/30 transition-colors cursor-help" title="Home/Small Office">192.168.0.0/16</span></div></div>
+                        </div>
+                        <div class="glass-panel p-4 rounded-sm border border-yellow-500/30">
+                            <div class="flex justify-between items-center mb-3"><h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="zap" class="text-yellow-400" size="16"></i> Assignment Logic</h3><div class="text-[10px] font-mono text-yellow-400 border border-yellow-800 px-1 bg-yellow-900/20">MODULE_02</div></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden"><div class="text-yellow-400 font-bold font-tech mb-1 flex items-center gap-2"><i data-lucide="refresh-cw" size="12"></i> DYNAMIC (DHCP)</div><p class="text-[10px] text-slate-400 mb-2">Temporary lease. Changes automatically. Good for clients (phones, laptops).</p><div class="text-center font-mono text-white text-xs bg-slate-900 p-1 rounded border border-slate-700 edu-dynamic-text shadow-inner h-6 flex items-center justify-center"></div></div>
+                                <div class="bg-black/60 p-3 rounded border border-slate-800 relative group overflow-hidden"><div class="text-green-400 font-bold font-tech mb-1 flex items-center gap-2"><i data-lucide="lock" size="12"></i> STATIC</div><p class="text-[10px] text-slate-400 mb-2">Permanent assignment. Configured manually. Critical for Servers/Routers.</p><div class="text-center font-mono text-green-400 text-xs bg-slate-900 p-1 rounded border border-green-900/50 shadow-[0_0_10px_rgba(34,197,94,0.2)] h-6 flex items-center justify-center">10.20.1.5 <i data-lucide="lock" size="10" class="ml-1"></i></div></div>
                             </div>
                         </div>
                     </div>`;
-            } else if (tab === 'acls') {
+            } else if (tab === 'osi') {
+                const layerHtml = osiLayers.map(l => `<div class="osi-layer p-3 rounded-sm border-l-2 border-slate-700 bg-black/60 mb-2 relative overflow-hidden hover:border-cyan-500 transition-all duration-200" onclick="openOsiModal(${l.id})"><div class="flex justify-between items-center relative z-10"><span class="font-mono text-xs text-slate-500 w-8">L${l.id}</span><span class="font-bold text-sm text-slate-300 flex-1 font-tech">${l.name}</span><span class="text-[10px] font-mono text-cyan-500 border border-cyan-900/50 px-1 rounded">${l.pdu}</span></div></div>`).join('');
                 container.innerHTML = `
-                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <div class="glass-panel p-4 rounded-sm border border-red-500/30">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="filter" class="text-red-400" size="16"></i> Access Control Lists</h3>
-                            </div>
-                            <div class="flex gap-4 mb-4">
-                                <div class="flex-1 bg-black/60 p-3 rounded border border-red-900/50">
-                                    <div class="text-red-400 font-bold text-xs mb-1">Standard ACL</div>
-                                    <p class="text-[9px] text-slate-400">Filters based on Source IP only. 1-99.</p>
-                                </div>
-                                <div class="flex-1 bg-black/60 p-3 rounded border border-red-900/50">
-                                    <div class="text-red-400 font-bold text-xs mb-1">Extended ACL</div>
-                                    <p class="text-[9px] text-slate-400">Filters Source, Dest, Port, Protocol. 100-199.</p>
-                                </div>
-                            </div>
-                            <div class="bg-slate-900 p-3 rounded border border-slate-700 font-mono text-[10px]">
-                                <div class="text-green-400">permit tcp 192.168.1.0 0.0.0.255 any eq 80</div>
-                                <div class="text-red-400">deny ip any any (Implicit Deny)</div>
-                            </div>
+                    <div class="flex gap-4 h-full fade-enter-active">
+                        <div class="w-full flex flex-col justify-center relative px-8">
+                            <div class="absolute left-1/2 top-0 bottom-0 w-px bg-slate-800 -translate-x-1/2 z-0"></div>
+                            <div class="packet-flow-down"></div>
+                            <div class="relative z-10 space-y-2">${layerHtml}</div>
+                            <div class="text-center mt-6 text-[10px] text-slate-500 font-mono animate-pulse">CLICK A LAYER FOR DEEP DIVE ANALYSIS</div>
                         </div>
                     </div>`;
-            } else if (tab === 'devices') {
-                container.innerHTML = `
-                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <div class="glass-panel p-4 rounded-sm border border-blue-500/30">
-                            <h3 class="font-bold text-white font-cyber mb-4 flex items-center gap-2"><i data-lucide="hard-drive" class="text-blue-400" size="16"></i> Network Devices</h3>
-                            <div class="space-y-3">
-                                <div class="flex items-start gap-3 p-2 bg-black/40 rounded border border-slate-800">
-                                    <div class="p-2 bg-blue-900/20 rounded"><i data-lucide="router" class="text-blue-400"></i></div>
-                                    <div><div class="text-xs font-bold text-white">Router (L3)</div><div class="text-[9px] text-slate-400">Connects networks, routes packets using IP.</div></div>
-                                </div>
-                                <div class="flex items-start gap-3 p-2 bg-black/40 rounded border border-slate-800">
-                                    <div class="p-2 bg-green-900/20 rounded"><i data-lucide="layers" class="text-green-400"></i></div>
-                                    <div><div class="text-xs font-bold text-white">Switch (L2)</div><div class="text-[9px] text-slate-400">Connects devices in LAN, forwards frames using MAC.</div></div>
-                                </div>
-                                <div class="flex items-start gap-3 p-2 bg-black/40 rounded border border-slate-800">
-                                    <div class="p-2 bg-purple-900/20 rounded"><i data-lucide="wifi" class="text-purple-400"></i></div>
-                                    <div><div class="text-xs font-bold text-white">Access Point</div><div class="text-[9px] text-slate-400">Extends wired network to wireless clients.</div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            } else if (tab === 'fhrp') {
-                container.innerHTML = `
-                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <div class="glass-panel p-4 rounded-sm border border-pink-500/30">
-                            <h3 class="font-bold text-white font-cyber mb-4 flex items-center gap-2"><i data-lucide="activity" class="text-pink-400" size="16"></i> First Hop Redundancy</h3>
-                            <div class="flex justify-center items-center gap-6 mb-4">
-                                <div class="text-center"><i data-lucide="router" class="text-green-400 w-8 h-8 mx-auto"></i><div class="text-[9px] text-green-400 mt-1">ACTIVE</div></div>
-                                <div class="text-[10px] font-mono text-pink-400 bg-pink-900/20 px-2 py-1 rounded">VIRTUAL IP</div>
-                                <div class="text-center"><i data-lucide="router" class="text-slate-500 w-8 h-8 mx-auto"></i><div class="text-[9px] text-slate-500 mt-1">STANDBY</div></div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="bg-black/40 p-2 rounded border border-slate-800"><span class="text-pink-400 font-bold text-xs">HSRP</span> <span class="text-[9px] text-slate-400">Cisco proprietary. Active/Standby.</span></div>
-                                <div class="bg-black/40 p-2 rounded border border-slate-800"><span class="text-pink-400 font-bold text-xs">VRRP</span> <span class="text-[9px] text-slate-400">Open standard. Master/Backup.</span></div>
-                                <div class="bg-black/40 p-2 rounded border border-slate-800"><span class="text-pink-400 font-bold text-xs">GLBP</span> <span class="text-[9px] text-slate-400">Cisco. Load Balancing built-in.</span></div>
-                            </div>
-                        </div>
-                    </div>`;
-            } else if (tab === 'intervlan') {
-                container.innerHTML = `
-                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <div class="glass-panel p-4 rounded-sm border border-orange-500/30">
-                            <h3 class="font-bold text-white font-cyber mb-4 flex items-center gap-2"><i data-lucide="shuffle" class="text-orange-400" size="16"></i> Inter-VLAN Routing</h3>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-black/40 p-3 rounded border border-slate-700 text-center">
-                                    <i data-lucide="router" class="text-orange-400 mx-auto mb-2"></i>
-                                    <div class="text-xs font-bold text-white mb-1">Router on a Stick</div>
-                                    <p class="text-[9px] text-slate-400">One physical interface, multiple sub-interfaces (Gi0/0.10, Gi0/0.20).</p>
-                                </div>
-                                <div class="bg-black/40 p-3 rounded border border-slate-700 text-center">
-                                    <i data-lucide="layers" class="text-orange-400 mx-auto mb-2"></i>
-                                    <div class="text-xs font-bold text-white mb-1">Layer 3 Switch</div>
-                                    <p class="text-[9px] text-slate-400">Switch Virtual Interfaces (SVI). Interface Vlan10, Interface Vlan20.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            } else if (tab === 'routing') {
-                container.innerHTML = `
-                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
-                        <div class="glass-panel p-4 rounded-sm border border-lime-500/30">
-                            <h3 class="font-bold text-white font-cyber mb-4 flex items-center gap-2"><i data-lucide="map" class="text-lime-400" size="16"></i> Static Routing</h3>
-                            <div class="bg-slate-900 p-3 rounded border border-slate-700 font-mono text-[10px] text-slate-300 mb-4">
-                                <span class="text-lime-400">Router(config)#</span> ip route 192.168.2.0 255.255.255.0 10.1.1.2
-                            </div>
-                            <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4">
-                                <li><strong class="text-white">Destination:</strong> The remote network you want to reach.</li>
-                                <li><strong class="text-white">Subnet Mask:</strong> Size of dest network.</li>
-                                <li><strong class="text-white">Next Hop:</strong> IP address of the adjacent router.</li>
-                                <li><strong class="text-white">AD (1):</strong> Static routes are very trusted (Admin Distance 1).</li>
-                            </ul>
-                        </div>
-                    </div>`;
-            } else if (tab === 'vlan') {
+            } else if (tab === 'protocols') {
+                const categories = Object.keys(protocolData).map(key => {
+                    const cat = protocolData[key];
+                    const items = cat.items.map(item => `<div class="bg-black/40 border border-slate-800 p-3 rounded hover:border-orange-500 transition-colors cursor-pointer group flex justify-between items-center" onclick="openProtocolModal('${key}', '${item.id}')"><div class="flex items-center gap-3"><i data-lucide="${item.icon}" class="text-orange-400 w-4 h-4"></i><span class="font-bold text-sm text-slate-300 group-hover:text-white">${item.name}</span></div><span class="text-[10px] font-mono text-slate-500">${item.port}</span></div>`).join('');
+                    return `<div class="mb-6"><h3 class="text-xs font-bold text-yellow-500 uppercase tracking-widest mb-3 border-b border-yellow-500/20 pb-1">${cat.name}</h3><div class="grid grid-cols-1 gap-2">${items}</div></div>`;
+                }).join('');
+                container.innerHTML = `<div class="fade-enter-active h-full overflow-y-auto custom-scrollbar pr-2"><div class="glass-panel p-6 rounded-sm border border-orange-500/30">${categories}</div></div>`;
+            } else if (tab === 'ports') {
+                const portsList = loadedPorts.map(p => `<div class="flex items-center justify-between p-2 border-b border-slate-800 hover:bg-green-900/10 hover:border-green-500/50 transition-colors group"><div class="w-16 font-mono text-green-400 text-sm">${p.port}</div><div class="w-20 font-mono text-slate-400 text-xs">${p.protocol}</div><div class="flex-1 text-slate-300 text-xs truncate group-hover:text-white">${p.desc}</div></div>`).join('');
+                container.innerHTML = `<div class="fade-enter-active h-full flex flex-col"><div class="glass-panel p-4 rounded-sm border border-green-500/30 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-center mb-4 border-b border-green-500/20 pb-2"><h3 class="font-bold text-white font-cyber flex items-center gap-2"><i data-lucide="list" class="text-green-400" size="16"></i> GLOBAL PORT REGISTRY</h3><div><label class="px-3 py-1.5 bg-green-900/30 border border-green-500/50 rounded-sm text-[10px] font-bold text-green-300 cursor-pointer hover:bg-green-800/50 transition-colors uppercase tracking-wider flex items-center gap-2"><i data-lucide="upload" size="10"></i> MOUNT EXTERNAL CSV<input type="file" accept=".csv" class="hidden" onchange="handleFileSelect(event)"></label></div></div><div class="flex items-center justify-between px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800 mb-2"><div class="w-16">Port</div><div class="w-20">Protocol</div><div class="flex-1">Service / Description</div></div><div class="flex-1 overflow-y-auto custom-scrollbar">${portsList}</div><div class="text-[9px] text-slate-600 font-mono pt-2 text-right">RECORDS LOADED: ${loadedPorts.length}</div></div></div>`;
+            } else if (tab === 'stp') {
                 container.innerHTML = `
                     <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
                         <div class="glass-panel p-4 rounded-sm border border-indigo-500/30">
-                            <h3 class="font-bold text-white font-cyber mb-4 flex items-center gap-2"><i data-lucide="layers" class="text-indigo-400" size="16"></i> Virtual LANs</h3>
-                            <div class="flex gap-2 mb-4">
-                                <div class="bg-red-900/30 border border-red-500/50 p-2 rounded text-[10px] text-red-200 flex-1 text-center">VLAN 10<br>(Sales)</div>
-                                <div class="bg-blue-900/30 border border-blue-500/50 p-2 rounded text-[10px] text-blue-200 flex-1 text-center">VLAN 20<br>(Eng)</div>
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white font-cyber flex items-center gap-2">
+                                    <i data-lucide="git-branch" class="text-indigo-400" size="16"></i> Spanning Tree Protocol
+                                </h3>
+                                <div class="text-[10px] font-mono text-indigo-400 border border-indigo-800 px-1 bg-indigo-900/20">IEEE 802.1D / 802.1w</div>
                             </div>
-                            <div class="text-xs text-slate-300 space-y-2">
-                                <p><strong class="text-indigo-400">Segmentation:</strong> Breaks broadcast domains for security and performance.</p>
-                                <p><strong class="text-indigo-400">802.1Q:</strong> The standard for tagging frames on trunk links.</p>
-                                <p><strong class="text-indigo-400">Trunk Port:</strong> Carries multiple VLANs between switches.</p>
-                                <p><strong class="text-indigo-400">Access Port:</strong> Belongs to one VLAN, connects to end devices.</p>
+                            <!-- Analogy Card -->
+                            <div class="bg-black/60 border-l-2 border-indigo-500 p-3 rounded mb-4">
+                                <div class="text-[10px] text-indigo-300 font-bold uppercase mb-1">Concept Analogy: "The Group Project"</div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-mono italic">
+                                    "Imagine a group project. To stop 5 people from shouting at once (loops/broadcast storms), you pick ONE leader (Root Bridge). Everyone talks ONLY to the leader or a designated messenger. STP blocks the noisy paths."
+                                </p>
+                            </div>
+                            <!-- Interactive/Visual Topology -->
+                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-48 flex justify-center items-center mb-4">
+                                <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                                    <!-- Triangle Lines -->
+                                    <line x1="50%" y1="20%" x2="25%" y2="70%" stroke="#22c55e" stroke-width="2" class="opacity-50" /> <!-- Root to SW-B -->
+                                    <line x1="50%" y1="20%" x2="75%" y2="70%" stroke="#22c55e" stroke-width="2" class="opacity-50" /> <!-- Root to SW-C -->
+                                    <line x1="25%" y1="70%" x2="75%" y2="70%" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5" class="opacity-80" /> <!-- Blocked Link -->
+                                    
+                                    <!-- Port Status Indicators -->
+                                    <circle cx="48%" cy="25%" r="3" fill="#22c55e" /> <circle cx="52%" cy="25%" r="3" fill="#22c55e" /> <!-- Root Ports -->
+                                    <circle cx="28%" cy="65%" r="3" fill="#22c55e" /> <!-- RP on SW-B -->
+                                    <circle cx="72%" cy="65%" r="3" fill="#22c55e" /> <!-- RP on SW-C -->
+                                    <circle cx="30%" cy="70%" r="3" fill="#22c55e" /> <!-- DP on SW-B -->
+                                    <circle cx="70%" cy="70%" r="3" fill="#ef4444" /> <!-- BLOCK on SW-C -->
+                                </svg>
+                                
+                                <!-- Switches -->
+                                <div class="absolute top-[10%] left-[50%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-10 h-10 bg-slate-900 border-2 border-yellow-500 rounded shadow-[0_0_15px_rgba(234,179,8,0.4)] flex items-center justify-center">
+                                        <i data-lucide="crown" class="text-yellow-500 w-5 h-5"></i>
+                                    </div>
+                                    <span class="text-[9px] text-yellow-500 font-mono mt-1 font-bold">ROOT BRIDGE</span>
+                                </div>
+
+                                <div class="absolute top-[70%] left-[25%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-10 h-10 bg-slate-900 border border-slate-600 rounded flex items-center justify-center">
+                                        <i data-lucide="box" class="text-slate-400 w-5 h-5"></i>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-mono mt-1">SW-B</span>
+                                </div>
+
+                                <div class="absolute top-[70%] left-[75%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-10 h-10 bg-slate-900 border border-slate-600 rounded flex items-center justify-center">
+                                        <i data-lucide="box" class="text-slate-400 w-5 h-5"></i>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-mono mt-1">SW-C</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Security Features Grid -->
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-slate-900/50 p-2 rounded border border-red-900/30">
+                                    <div class="text-[10px] text-red-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="shield-alert" size="10"></i> BPDU GUARD</div>
+                                    <p class="text-[9px] text-slate-400">Disables an access port if a switch is plugged in. Prevents unauthorized expansion.</p>
+                                </div>
+                                <div class="bg-slate-900/50 p-2 rounded border border-yellow-900/30">
+                                    <div class="text-[10px] text-yellow-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="crown" size="10"></i> ROOT GUARD</div>
+                                    <p class="text-[9px] text-slate-400">Protects the Root Bridge role. If a better BPDU arrives, port becomes inconsistent.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>`;
+
+                        <!-- Configuration Section -->
+                        <div class="glass-panel p-4 rounded-sm border border-blue-500/30">
+                            <h3 class="font-bold text-white font-cyber mb-3 text-xs uppercase flex items-center gap-2">
+                                <i data-lucide="terminal" size="14" class="text-blue-400"></i> Configuration (Cisco IOS)
+                            </h3>
+                            <div class="bg-black/80 border border-slate-700 p-3 rounded font-mono text-[10px] text-slate-300 overflow-x-auto shadow-inner">
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! 1. Enable Rapid PVST+ (Faster convergence)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> spanning-tree mode rapid-pvst
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! 2. Force this switch to be Root Bridge (Primary)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> spanning-tree vlan 1 root primary
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! 3. Configure Access Ports (BPDU Guard & PortFast)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> interface range Gi0/1 - 24<br>
+                                    <span class="text-blue-400">Switch(config-if-range)#</span> switchport mode access<br>
+                                    <span class="text-blue-400">Switch(config-if-range)#</span> spanning-tree portfast<br>
+                                    <span class="text-blue-400">Switch(config-if-range)#</span> spanning-tree bpduguard enable
+                                </div>
+                                <div>
+                                    <span class="text-slate-500">! 4. Root Guard (On ports connecting to other switches)</span><br>
+                                    <span class="text-blue-400">Switch(config)#</span> interface Gi0/25<br>
+                                    <span class="text-blue-400">Switch(config-if)#</span> spanning-tree guard root
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (tab === 'pvst') {
+                container.innerHTML = `
+                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
+                        <div class="glass-panel p-4 rounded-sm border border-rose-500/30">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white font-cyber flex items-center gap-2">
+                                    <i data-lucide="network" class="text-rose-400" size="16"></i> Per-VLAN Spanning Tree
+                                </h3>
+                                <div class="text-[10px] font-mono text-rose-400 border border-rose-800 px-1 bg-rose-900/20">PVST+ / Rapid-PVST</div>
+                            </div>
+                            
+                            <!-- Analogy Card -->
+                            <div class="bg-black/60 border-l-2 border-rose-500 p-3 rounded mb-4">
+                                <div class="text-[10px] text-rose-300 font-bold uppercase mb-1">Concept Analogy: "The Multi-Lane Highway"</div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-mono italic">
+                                    "Standard STP is like closing one lane for everyone. PVST+ creates separate lanes. Cars (VLAN 10) use the Left Lane, Trucks (VLAN 20) use the Right Lane. Both roads are used, doubling efficiency."
+                                </p>
+                            </div>
+                            
+                            <!-- Interactive/Visual Topology -->
+                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-48 flex justify-center items-center mb-4">
+                                <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                                    <!-- VLAN 10 Path (Red) -->
+                                    <line x1="25%" y1="70%" x2="50%" y2="20%" stroke="#ef4444" stroke-width="2" class="opacity-60" /> 
+                                    <circle cx="25%" cy="70%" r="2" fill="#ef4444">
+                                        <animateMotion dur="2s" repeatCount="indefinite" path="M 0 0 L 120 -100" /> 
+                                    </circle>
+                                    
+                                    <!-- VLAN 20 Path (Blue) -->
+                                    <line x1="75%" y1="70%" x2="50%" y2="20%" stroke="#3b82f6" stroke-width="2" class="opacity-60" />
+                                    <circle cx="75%" cy="70%" r="2" fill="#3b82f6">
+                                        <animateMotion dur="2s" repeatCount="indefinite" path="M 0 0 L -120 -100" />
+                                    </circle>
+                                </svg>
+                                
+                                <!-- Switches -->
+                                <div class="absolute top-[10%] left-[50%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-12 h-12 bg-slate-900 border border-slate-500 rounded flex items-center justify-center relative">
+                                         <div class="absolute -top-3 -left-3 text-[9px] bg-red-900/80 text-red-300 px-1 rounded border border-red-500">ROOT V10</div>
+                                         <div class="absolute -top-3 -right-3 text-[9px] bg-blue-900/80 text-blue-300 px-1 rounded border border-blue-500">ROOT V20</div>
+                                        <i data-lucide="layers" class="text-white w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-[9px] text-slate-400 font-mono mt-1">CORE SWITCH</span>
+                                </div>
+
+                                <div class="absolute top-[70%] left-[25%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-10 h-10 bg-slate-900 border border-red-500/50 rounded flex items-center justify-center">
+                                        <span class="text-red-400 font-bold text-xs">V10</span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-mono mt-1">ACCESS A</span>
+                                </div>
+
+                                <div class="absolute top-[70%] left-[75%] -translate-x-1/2 flex flex-col items-center z-10">
+                                    <div class="w-10 h-10 bg-slate-900 border border-blue-500/50 rounded flex items-center justify-center">
+                                        <span class="text-blue-400 font-bold text-xs">V20</span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-mono mt-1">ACCESS B</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Benefits Grid -->
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-slate-900/50 p-2 rounded border border-green-900/30">
+                                    <div class="text-[10px] text-green-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="bar-chart-2" size="10"></i> LOAD BALANCING</div>
+                                    <p class="text-[9px] text-slate-400">Uses all redundant links by assigning different VLANs to different paths.</p>
+                                </div>
+                                <div class="bg-slate-900/50 p-2 rounded border border-purple-900/30">
+                                    <div class="text-[10px] text-purple-400 font-bold mb-1 flex items-center gap-1"><i data-lucide="cpu" size="10"></i> CPU OVERHEAD</div>
+                                    <p class="text-[9px] text-slate-400">Requires more CPU/Memory than standard CST because it maintains a tree for EACH VLAN.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuration Section -->
+                        <div class="glass-panel p-4 rounded-sm border border-blue-500/30">
+                            <h3 class="font-bold text-white font-cyber mb-3 text-xs uppercase flex items-center gap-2">
+                                <i data-lucide="terminal" size="14" class="text-blue-400"></i> Load Balancing Config
+                            </h3>
+                            <div class="bg-black/80 border border-slate-700 p-3 rounded font-mono text-[10px] text-slate-300 overflow-x-auto shadow-inner">
+                                <div class="mb-3">
+                                    <span class="text-slate-500">! Core Switch 1: Primary for VLAN 10, Secondary for VLAN 20</span><br>
+                                    <span class="text-blue-400">Core1(config)#</span> spanning-tree vlan 10 root primary<br>
+                                    <span class="text-blue-400">Core1(config)#</span> spanning-tree vlan 20 root secondary
+                                </div>
+                                <div>
+                                    <span class="text-slate-500">! Core Switch 2: Primary for VLAN 20, Secondary for VLAN 10</span><br>
+                                    <span class="text-blue-400">Core2(config)#</span> spanning-tree vlan 20 root primary<br>
+                                    <span class="text-blue-400">Core2(config)#</span> spanning-tree vlan 10 root secondary
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (tab === 'nat') {
+                container.innerHTML = `
+                    <div class="space-y-4 fade-enter-active h-full flex flex-col overflow-y-auto custom-scrollbar pr-2">
+                        <!-- Header / Definition -->
+                        <div class="glass-panel p-4 rounded-sm border border-teal-500/30">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white font-cyber flex items-center gap-2">
+                                    <i data-lucide="arrow-left-right" class="text-teal-400" size="16"></i> Network Address Translation
+                                </h3>
+                                <div class="text-[10px] font-mono text-teal-400 border border-teal-800 px-1 bg-teal-900/20">RFC 1631</div>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed font-mono">
+                                NAT allows multiple devices on a private network to share a single public IP address to access the internet. It acts as the gateway translator between your LAN and the WAN.
+                            </p>
+                            <!-- Mini-Simulation -->
+                            <div class="bg-black/60 p-4 rounded border border-slate-800 relative h-32 flex items-center justify-between mt-4 overflow-hidden">
+                                <div class="text-center z-10 w-1/3">
+                                    <div class="text-[9px] text-slate-500 mb-1">INSIDE (PRIVATE)</div>
+                                    <div class="font-mono text-purple-400 text-xs">192.168.1.5</div>
+                                    <i data-lucide="smartphone" class="mx-auto text-purple-500 mt-1 w-5 h-5"></i>
+                                </div>
+                                <div class="text-center z-10 w-1/3 relative">
+                                    <div class="w-10 h-10 bg-slate-900 border border-teal-500 rounded mx-auto flex items-center justify-center shadow-[0_0_15px_rgba(45,212,191,0.3)]">
+                                        <i data-lucide="router" class="text-teal-400 w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-[9px] text-teal-500 mt-1 font-bold">NAT ROUTER</div>
+                                    <div class="nat-packet"></div>
+                                </div>
+                                <div class="text-center z-10 w-1/3">
+                                    <div class="text-[9px] text-slate-500 mb-1">OUTSIDE (PUBLIC)</div>
+                                    <div class="font-mono text-cyan-400 text-xs">203.0.113.1</div>
+                                    <i data-lucide="globe" class="mx-auto text-cyan-500 mt-1 w-5 h-5"></i>
+                                </div>
+                            </div>
+                            <!-- Translation Table Simulation -->
+                            <div class="mt-2 bg-slate-900/80 p-2 rounded border border-slate-800 font-mono text-[9px]">
+                                <div class="flex text-slate-500 border-b border-slate-700 pb-1 mb-1">
+                                    <div class="flex-1">Inside Local</div>
+                                    <div class="w-4">-></div>
+                                    <div class="flex-1 text-right">Inside Global</div>
+                                </div>
+                                <div class="flex text-purple-300">
+                                    <div class="flex-1">192.168.1.5:49152</div>
+                                    <div class="w-4 text-slate-600">-></div>
+                                    <div class="flex-1 text-right text-cyan-300">203.0.113.1:2001</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NAT Types -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="bg-black/40 p-3 rounded border border-slate-800 hover:border-teal-500/50 transition-colors">
+                                <div class="text-teal-400 font-bold text-xs mb-2">Static NAT</div>
+                                <p class="text-[10px] text-slate-400 leading-tight">One-to-One mapping. One private IP is permanently mapped to one public IP. Used for servers.</p>
+                            </div>
+                            <div class="bg-black/40 p-3 rounded border border-slate-800 hover:border-teal-500/50 transition-colors">
+                                <div class="text-teal-400 font-bold text-xs mb-2">Dynamic NAT</div>
+                                <p class="text-[10px] text-slate-400 leading-tight">Many-to-Many. Maps private IPs to a pool of available public IPs on a first-come basis.</p>
+                            </div>
+                            <div class="bg-black/40 p-3 rounded border border-slate-800 hover:border-teal-500/50 transition-colors">
+                                <div class="text-teal-400 font-bold text-xs mb-2">PAT (Overload)</div>
+                                <p class="text-[10px] text-slate-400 leading-tight">Many-to-One. Maps multiple private IPs to a single public IP using different port numbers.</p>
+                            </div>
+                        </div>
+
+                        <!-- Insight: Why PAT? -->
+                        <div class="glass-panel p-4 rounded-sm border border-yellow-500/30">
+                            <h3 class="font-bold text-white font-cyber mb-2 text-xs uppercase flex items-center gap-2">
+                                <i data-lucide="lightbulb" size="14" class="text-yellow-400"></i> Insight: Why use PAT (Overload)?
+                            </h3>
+                            <p class="text-xs text-slate-300 leading-relaxed font-mono mb-2">
+                                <strong class="text-yellow-400">Problem:</strong> In large networks (enterprises, data centers), thousands of devices need internet access. Buying thousands of Public IPs is expensive and wasteful.
+                            </p>
+                            <p class="text-xs text-slate-300 leading-relaxed font-mono">
+                                <strong class="text-green-400">Solution:</strong> PAT allows a single Public IP to support over 65,000 simultaneous connections by tracking unique source ports. It creates a massive "Extension Cord" for the internet.
+                            </p>
+                        </div>
+                    </div>
+                `;
             } else if (tab === 'calc') {
-                container.innerHTML = `<div class="glass-panel rounded p-4 border border-slate-700 fade-enter-active"><h3 class="font-bold text-cyan-400 mb-4 flex gap-2 items-center font-cyber"><i data-lucide="calculator"></i> Binary Matrix</h3><div class="flex gap-2 mb-4"><input id="calc-ip" type="text" placeholder="IP Address" class="cyber-input p-2 rounded-sm font-mono text-white flex-1 min-w-0 outline-none"><input id="calc-cidr" type="number" placeholder="24" class="cyber-input p-2 rounded-sm font-mono text-white w-16 outline-none"><button onclick="runCalc()" class="bg-cyan-700 text-white px-4 rounded-sm hover:bg-cyan-600 font-bold border border-cyan-500/50 transition-colors">Calc</button></div><div id="calc-results" class="text-xs font-mono space-y-2 text-slate-300">Enter values to decode binary stream.</div></div>`;
+                container.innerHTML = `
+                    <div class="glass-panel rounded p-4 border border-slate-700 fade-enter-active">
+                        <h3 class="font-bold text-cyan-400 mb-4 flex gap-2 items-center font-cyber"><i data-lucide="calculator"></i> Binary Matrix</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input id="calc-ip" type="text" placeholder="IP Address" class="cyber-input p-2 rounded-sm font-mono text-white flex-1 min-w-0 outline-none">
+                            <input id="calc-cidr" type="number" placeholder="24" class="cyber-input p-2 rounded-sm font-mono text-white w-16 outline-none">
+                            <button onclick="runCalc()" class="bg-cyan-700 text-white px-4 rounded-sm hover:bg-cyan-600 font-bold border border-cyan-500/50 transition-colors">Calc</button>
+                        </div>
+                        <div id="calc-results" class="text-xs font-mono space-y-2 text-slate-300">Enter values to decode binary stream.</div>
+                    </div>`;
             }
         }
 
